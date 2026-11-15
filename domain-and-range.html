@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shadow Lab: Domain and Range</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#00274C; --maize:#FFCB05; --navy-ink:#B9C8DC;
+  --bg:#F2F5F9; --surface:#FFFFFF; --paper:#FFFFFF; --ink:#13233A; --muted:#55667E;
+  --line:#D3DCE7; --grid:#E8EEF5; --axis:#8796AA; --curve:#00274C;
+  --dom:#2774AE; --ran:#7A4CB5; --ok:#1E9E5A; --bad:#D2353F; --miss:#E07B00;
+  --shadow:#34425A; --chip:#EEF3F9; --zone:#FFCB05;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#051427; --surface:#0B213D; --paper:#091B33; --ink:#E8EEF6; --muted:#9FB0C6;
+    --line:#22406A; --grid:#13304F; --axis:#5D7898; --curve:#FFCB05;
+    --dom:#62AEEA; --ran:#B892F2; --ok:#4CC985; --bad:#F2707A; --miss:#FFA94D;
+    --shadow:#C3CFDE; --chip:#132E52; --zone:#FFCB05;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#051427; --surface:#0B213D; --paper:#091B33; --ink:#E8EEF6; --muted:#9FB0C6;
+  --line:#22406A; --grid:#13304F; --axis:#5D7898; --curve:#FFCB05;
+  --dom:#62AEEA; --ran:#B892F2; --ok:#4CC985; --bad:#F2707A; --miss:#FFA94D;
+  --shadow:#C3CFDE; --chip:#132E52; --zone:#FFCB05;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Lexend',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.5}
+button,select,input{font:inherit;color:inherit}
+.wrap{max-width:1140px;margin:0 auto;padding:0 18px}
+
+/* Header */
+header.top{background:var(--navy);color:#fff}
+.top-inner{display:flex;align-items:center;gap:18px;padding:16px 0 10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.brand svg{flex:none}
+.brand h1{font-size:1.4rem;font-weight:700;margin:0;letter-spacing:-.015em;line-height:1.1}
+.brand p{margin:2px 0 0;font-size:.82rem;color:var(--navy-ink)}
+.stats{margin-left:auto;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column;gap:3px;min-width:58px}
+.stat b{font-size:1.05rem;font-weight:600;line-height:1}
+.stat span{font-size:.72rem;color:var(--navy-ink)}
+.xpbar{width:140px;height:8px;border-radius:99px;background:rgba(255,255,255,.16);overflow:hidden}
+.xpbar i{display:block;height:100%;width:0;background:var(--maize);transition:width .5s ease}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav.tabs button{background:none;border:0;color:var(--navy-ink);padding:10px 14px 12px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:#fff;border-bottom-color:var(--maize)}
+nav.tabs button:hover{color:#fff}
+nav.tabs button:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,canvas:focus-visible{outline:3px solid var(--maize);outline-offset:2px}
+
+/* Layout */
+main.grid{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:22px;padding:22px 0 48px;align-items:start}
+@media (max-width:900px){main.grid{grid-template-columns:1fr}}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 10px 6px}
+.stage canvas{display:block;width:100%;touch-action:none;cursor:crosshair}
+.stage-cap{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);padding:6px 6px 4px}
+.stage-cap .sw{display:inline-block;width:14px;height:6px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}
+.panel h2{font-size:1.2rem;margin:0 0 6px;letter-spacing:-.01em}
+.lede{margin:0 0 14px;color:var(--muted);font-size:.92rem}
+.howto{margin:0 0 14px;padding-left:18px;font-size:.86rem;color:var(--muted)}
+.howto li{margin:2px 0}
+
+/* Controls */
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.seg button{border:1.5px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px;font-size:.84rem;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{background:var(--maize);border-color:var(--maize);color:#00274C}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{background:var(--maize);border-color:var(--maize);color:#00274C}}
+.field{display:flex;gap:8px;align-items:center;margin:0 0 12px}
+.field select{flex:1;padding:7px 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface)}
+.btn{border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:500;font-size:.88rem}
+.btn:hover{border-color:var(--axis)}
+.btn.primary{background:var(--maize);border-color:var(--maize);color:#00274C;font-weight:600}
+.btn.primary:hover{filter:brightness(.96)}
+.btn.big{width:100%;padding:12px;font-size:1rem;margin:4px 0 0}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.row .btn{flex:1}
+
+/* Math */
+.m{font-family:'STIX Two Text',Georgia,serif;font-size:1.12rem}
+.m i{font-style:italic}
+.ans{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 6px}
+.ans .lab{font-size:.78rem;font-weight:600}
+.ans.d .lab{color:var(--dom)} .ans.r .lab{color:var(--ran)}
+.ans.d{border-left:5px solid var(--dom)} .ans.r{border-left:5px solid var(--ran)}
+.ans .m.sub{font-size:.98rem;color:var(--muted)}
+.readout{background:var(--chip);border-radius:12px;padding:12px;font-size:.9rem;min-height:66px;margin:0 0 12px}
+.meter{margin:0 0 10px}
+.meter .t{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}
+.meter .bar{height:7px;border-radius:99px;background:var(--chip);overflow:hidden}
+.meter .bar i{display:block;height:100%;width:0;transition:width .2s}
+.meter.d .bar i{background:var(--dom)} .meter.r .bar i{background:var(--ran)}
+.meter .found{font-size:.92rem;margin-top:4px}
+
+/* Results */
+#result:empty{display:none}
+.result{border-radius:12px;border:1.5px solid var(--line);padding:14px;margin:12px 0 0}
+.score{display:flex;align-items:baseline;gap:6px}
+.score b{font-size:2.2rem;line-height:1;font-weight:700}
+.score span{color:var(--muted)}
+.verdict{margin:10px 0 0;font-size:.88rem}
+.verdict h3{font-size:.86rem;margin:10px 0 2px}
+.verdict h3.okc{color:var(--ok)} .verdict h3.badc{color:var(--bad)}
+.verdict ul{margin:4px 0 0;padding-left:18px}
+.verdict li{margin:3px 0}
+.code{margin:12px 0 0;padding:12px;border-radius:12px;background:var(--navy);color:#fff;font-size:.86rem}
+.code b{color:var(--maize);font-size:1.15rem;letter-spacing:.06em}
+.code:empty{display:none}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.badge{font-size:.74rem;border:1.5px dashed var(--line);color:var(--muted);border-radius:99px;padding:3px 9px}
+.badge.on{border-style:solid;border-color:var(--maize);background:rgba(255,203,5,.16);color:var(--ink)}
+.sub-h{font-size:.82rem;font-weight:600;margin:16px 0 6px;color:var(--muted)}
+
+/* Lab */
+.eq{font-family:'STIX Two Text',Georgia,serif;font-size:1.5rem;text-align:center;padding:12px 8px;background:var(--chip);border-radius:12px;margin:0 0 12px;min-height:62px;display:flex;align-items:center;justify-content:center}
+.eq i{font-style:italic}
+.rad{border-top:1.5px solid currentColor;padding:0 2px;margin-left:1px}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.85em;margin:0 3px}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 4px}
+.slider{display:grid;grid-template-columns:22px 1fr 42px;gap:10px;align-items:center;margin:6px 0}
+.slider label{font-family:'STIX Two Text',Georgia,serif;font-style:italic;font-size:1.2rem}
+.slider output{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.slider input{accent-color:var(--navy);width:100%}
+:root[data-theme="dark"] .slider input{accent-color:var(--maize)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .slider input{accent-color:var(--maize)}}
+table.disc{width:100%;border-collapse:collapse;font-size:.82rem;margin-top:4px}
+table.disc th{text-align:left;font-weight:600;color:var(--muted);padding:4px 2px;border-bottom:1px solid var(--line)}
+table.disc td{padding:5px 2px;border-bottom:1px solid var(--line)}
+table.disc tr.cur td{font-weight:600}
+.chip{display:inline-block;width:20px;height:20px;line-height:17px;text-align:center;border-radius:6px;border:1.5px dashed var(--line);font-family:'STIX Two Text',Georgia,serif;font-style:italic;margin-right:3px;color:var(--muted)}
+.chip.no{border-style:solid;opacity:.55}
+.chip.yd{border:1.5px solid var(--dom);background:var(--dom);color:#fff;opacity:1}
+.chip.yr{border:1.5px solid var(--ran);background:var(--ran);color:#fff;opacity:1}
+.disc-key{font-size:.74rem;color:var(--muted);margin-top:6px}
+
+/* Reverse */
+.target{border:2px solid var(--maize);border-radius:12px;padding:12px 14px;margin:0 0 12px}
+.target .tt{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:4px}
+.stars{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 12px}
+.stars button{width:28px;height:28px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;font-size:.8rem;padding:0}
+.stars button.solved{background:var(--maize);border-color:var(--maize);color:#00274C;font-weight:700}
+.stars button.cur{outline:2px solid var(--navy);outline-offset:1px}
+#rvFeedback:empty{display:none}
+
+/* Detective */
+.case{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:12px;padding:12px;margin:0 0 12px}
+.case .avatar{flex:none;width:42px;height:42px;border-radius:50%;background:var(--navy);color:var(--maize);display:grid;place-items:center;font-weight:700;font-size:1.05rem}
+.case .who{font-size:.8rem;color:var(--muted)}
+.case .m{font-size:1.02rem}
+.qstep{font-size:.78rem;color:var(--muted);margin:0 0 4px}
+.q{font-weight:600;margin:0 0 10px}
+.choices{display:grid;gap:8px;margin:0 0 10px}
+.choice{text-align:left;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);cursor:pointer;line-height:1.35}
+.choice:hover{border-color:var(--axis)}
+.choice .m{font-size:1.06rem}
+.choice.right{border-color:var(--ok);background:color-mix(in srgb, var(--ok) 12%, transparent)}
+.choice.wrong{border-color:var(--bad);opacity:.6}
+.choices.two{grid-template-columns:1fr 1fr}
+.fb{border-radius:10px;padding:10px 12px;margin:0 0 10px;font-size:.88rem;background:var(--chip)}
+.fb.good{border-left:4px solid var(--ok)} .fb.bad{border-left:4px solid var(--bad)}
+.ed-stats{font-size:.8rem;color:var(--muted);margin-top:10px}
+
+/* Memory */
+.mem-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:4px}
+@media (max-width:560px){.mem-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card{aspect-ratio:1;border:0;padding:0;background:none;cursor:pointer;perspective:800px}
+.card .inner{position:relative;display:block;width:100%;height:100%;transition:transform .45s ease;transform-style:preserve-3d}
+.card.up .inner{transform:rotateY(180deg)}
+.card .back,.card .front{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.card .back{background:var(--navy);display:grid;place-items:center;border:2px solid var(--navy)}
+.card .back svg{width:42%;height:42%}
+.card .front{transform:rotateY(180deg);background:var(--paper);border:2px solid var(--line);display:grid;place-items:center}
+.card.got{cursor:default}
+.card.got .front{border-color:var(--ok);box-shadow:0 0 0 2px var(--ok) inset;opacity:.35}
+.card.sel .front{border-color:var(--maize);box-shadow:0 0 0 3px var(--maize) inset}
+.card.nope .front{border-color:var(--bad);box-shadow:0 0 0 3px var(--bad) inset}
+.card.nope{animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.mem-grid{position:relative}
+.mm-start{position:absolute;inset:0;margin:auto;width:max-content;height:max-content;padding:16px 28px;font-size:1.15rem;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.35);z-index:2}
+.mm-best{font-size:.82rem;color:var(--muted);margin:-4px 0 12px}
+.mm-best:empty{display:none}
+@media (prefers-reduced-motion: reduce){.card.nope{animation:none}}
+.card canvas.mini{width:100%;height:100%;display:block}
+.card .dr{display:flex;flex-direction:column;gap:2px;padding:6px;text-align:center}
+.card .dr .k{font-size:.66rem;font-weight:600;color:var(--muted)}
+.card .dr .k.d{color:var(--dom)} .card .dr .k.r{color:var(--ran)}
+.card .dr .m{font-size:clamp(.78rem,1.6vw,1rem);line-height:1.2}
+.mm-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 12px}
+.mm-stats div{background:var(--chip);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column}
+.mm-stats b{font-size:1.15rem}
+.mm-stats span{font-size:.72rem;color:var(--muted)}
+#mmDone:empty{display:none}
+
+/* Game day */
+.qprog{background:var(--navy);color:#fff;border-radius:12px;padding:12px 14px;margin:4px 0 12px}
+.qprog-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.qprog b{font-size:1.3rem;color:var(--maize);letter-spacing:-.01em}
+.qprog span{font-size:.82rem;color:#B9C8DC}
+.qdots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+.qdots i{height:9px;border-radius:99px;background:rgba(255,255,255,.2)}
+.qdots i.done{background:var(--maize)}
+.qdots i.cur{background:#fff}
+.story{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 12px}
+.story h3{margin:0 0 4px;font-size:1rem}
+.story p{margin:0 0 8px;font-size:.9rem;color:var(--muted)}
+.eq.small{font-size:1.2rem;min-height:0;padding:8px;margin:0}
+.story p.model-note{color:var(--ink);font-weight:500;margin:0 0 6px}
+.model-note i.mv{font-family:'STIX Two Text',Georgia,serif;font-size:1.1em}
+.summary{border:2px solid var(--maize);border-radius:12px;padding:12px 14px;margin:6px 0 10px;font-size:.9rem}
+.summary div{margin:3px 0}
+@media (prefers-reduced-motion: reduce){.card .inner{transition:none}}
+
+[hidden]{display:none !important}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--navy);color:#fff;border:2px solid var(--maize);border-radius:12px;padding:10px 16px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:20;max-width:90vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion: reduce){.toast,.xpbar i,.meter .bar i{transition:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="top-inner">
+      <div class="brand">
+        <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true">
+          <rect x="1" y="1" width="38" height="38" rx="9" fill="#FFCB05"/>
+          <path d="M8 26 Q 16 6 24 18 T 33 12" fill="none" stroke="#00274C" stroke-width="3" stroke-linecap="round"/>
+          <rect x="8" y="31" width="25" height="3.5" rx="1.5" fill="#00274C"/>
+        </svg>
+        <div>
+          <h1>Shadow Lab</h1>
+          <p>Domain and range, one shadow at a time</p>
+        </div>
+      </div>
+      <div class="stats" aria-live="polite">
+        <div class="stat"><b id="sLevel">Level 1</b><div class="xpbar"><i id="sBar"></i></div><span id="sXP">0 XP</span></div>
+        <div class="stat"><b id="sStreak">0</b><span>Perfect streak</span></div>
+        <div class="stat"><b id="sBadges">0</b><span>Badges</span></div>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Modes">
+      <button role="tab" data-mode="laser" aria-selected="false">Laser scan</button>
+      <button role="tab" data-mode="caster" aria-selected="true">Shadow caster</button>
+      <button role="tab" data-mode="lab" aria-selected="false">Slider lab</button>
+      <button role="tab" data-mode="reverse" aria-selected="false">Reverse engineer</button>
+      <button role="tab" data-mode="detective" aria-selected="false">Error detective</button>
+      <button role="tab" data-mode="memory" aria-selected="false">Speed match</button>
+      <button role="tab" data-mode="gameday" aria-selected="false">Game day</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+<main class="grid">
+  <div class="stage" id="stage">
+    <canvas id="cv" tabindex="0" aria-label="Coordinate plane with the graph, a domain number line along the bottom and a range number line along the left side"></canvas>
+    <div class="mem-grid" id="memGrid" hidden></div>
+    <div class="stage-cap" id="cap"></div>
+  </div>
+
+  <aside class="panel">
+    <!-- LASER -->
+    <section data-panel="laser" hidden>
+      <h2>Laser scan</h2>
+      <p class="lede">Sweep a laser across the graph. Every value where the laser touches the graph lights up on the number line. Sweep the whole screen, and the lit-up part is the domain (or the range).</p>
+      <div class="field">
+        <select id="lGraph" aria-label="Choose a graph"></select>
+        <button class="btn" id="lRand">New random</button>
+      </div>
+      <div class="seg" id="lDir">
+        <button data-dir="v" aria-pressed="true">Vertical laser</button>
+        <button data-dir="h" aria-pressed="false">Horizontal laser</button>
+      </div>
+      <div class="readout" id="lRead" aria-live="polite">Drag across the graph to start scanning. Arrow keys work too.</div>
+      <div class="meter d"><div class="t"><span>Domain swept</span><span id="lPctD">0%</span></div><div class="bar"><i id="lBarD"></i></div><div class="found" id="lFoundD"></div></div>
+      <div class="meter r"><div class="t"><span>Range swept</span><span id="lPctR">0%</span></div><div class="bar"><i id="lBarR"></i></div><div class="found" id="lFoundR"></div></div>
+      <button class="btn" id="lClear">Clear both trails</button>
+    </section>
+
+    <!-- CASTER -->
+    <section data-panel="caster">
+      <h2>Shadow caster</h2>
+      <div class="seg" id="tiers">
+        <button data-tier="1" aria-pressed="true">1: Pieces</button>
+        <button data-tier="2" aria-pressed="false">2: Basic functions</button>
+        <button data-tier="3" aria-pressed="false">3: Gaps &amp; asymptotes</button>
+        <button data-tier="4" aria-pressed="false">4: Mixed</button>
+      </div>
+      <p class="lede">Claim the domain on the bottom number line and the range on the left one. Then cast the graph’s shadow and see how close you were.</p>
+      <ul class="howto">
+        <li>Drag a handle to move it.</li>
+        <li>Tap a handle to switch between open (not included) and closed (included).</li>
+        <li>Drag a handle past the end of a number line for ∞.</li>
+      </ul>
+      <div class="ans d"><div class="lab">Your domain</div><div class="m" id="aD"></div><div class="m sub" id="aDi"></div></div>
+      <div class="ans r"><div class="lab">Your range</div><div class="m" id="aR"></div><div class="m sub" id="aRi"></div></div>
+      <div class="row">
+        <button class="btn" id="holeD">Hole in domain</button>
+        <button class="btn" id="holeR">Hole in range</button>
+      </div>
+      <button class="btn primary big" id="castBtn">Cast the shadow</button>
+      <div class="row" id="afterBtns" hidden>
+        <button class="btn" id="retryBtn">Try this one again</button>
+        <button class="btn primary" id="nextBtn">Next graph</button>
+      </div>
+      <div id="result"></div>
+      <div class="code" id="codeBox"></div>
+      <div class="sub-h">Badges</div>
+      <div class="badges" id="badges"></div>
+    </section>
+
+    <!-- LAB -->
+    <section data-panel="lab" hidden>
+      <h2>Slider lab</h2>
+      <p class="lede">Move each slider. Which ones change the domain? Which ones change the range? The table fills in as you discover it.</p>
+      <div class="seg" id="labFam"></div>
+      <div class="eq" id="labEq"></div>
+      <div class="slider"><label for="labA">a</label><input type="range" id="labA"><output id="labAo"></output></div>
+      <div class="slider"><label for="labH">h</label><input type="range" id="labH" min="-6" max="6" step="1"><output id="labHo"></output></div>
+      <div class="slider"><label for="labK">k</label><input type="range" id="labK" min="-6" max="6" step="1"><output id="labKo"></output></div>
+      <div class="ans d" style="margin-top:12px"><div class="lab">Domain</div><div class="m" id="labD"></div><div class="m sub" id="labDi"></div></div>
+      <div class="ans r"><div class="lab">Range</div><div class="m" id="labR"></div><div class="m sub" id="labRi"></div></div>
+      <div class="sub-h">What you’ve discovered</div>
+      <table class="disc"><thead><tr><th>Family</th><th>Changes domain</th><th>Changes range</th></tr></thead><tbody id="discBody"></tbody></table>
+      <div class="disc-key">Filled = that slider changed it. Faded = you moved it and nothing changed. Dashed = not tested yet.</div>
+    </section>
+
+    <!-- DETECTIVE -->
+    <section data-panel="detective" hidden>
+      <h2>Error detective</h2>
+      <p class="lede">A classmate wrote down the domain and range of this graph. Check their work like a detective: is something wrong, and if so, what went wrong?</p>
+      <div class="case" id="edCase"></div>
+      <div id="edBody"></div>
+      <div class="ed-stats" id="edStats"></div>
+    </section>
+
+    <!-- MEMORY -->
+    <section data-panel="memory" hidden>
+      <h2>Speed match</h2>
+      <p class="lede">When you start the clock, all 12 cards turn face up. Click a graph and then its domain and range card (either order) to clear the pair. Clear all six pairs as fast as you can.</p>
+      <div class="seg" id="mmTier">
+        <button data-tier="1" aria-pressed="false">Pieces</button>
+        <button data-tier="2" aria-pressed="false">Basic functions</button>
+        <button data-tier="3" aria-pressed="false">Gaps &amp; asymptotes</button>
+        <button data-tier="4" aria-pressed="true">Mixed</button>
+      </div>
+      <div class="mm-stats">
+        <div><b id="mmPairs">0 / 6</b><span>Pairs found</span></div>
+        <div><b id="mmMoves">0</b><span>Misses (+3 s each)</span></div>
+        <div><b id="mmTime">0:00.0</b><span>Time</span></div>
+      </div>
+      <div class="mm-best" id="mmBest"></div>
+      <div id="mmDone"></div>
+      <button class="btn primary big" id="mmNew">Deal a new board</button>
+    </section>
+
+    <!-- GAME DAY -->
+    <section data-panel="gameday" hidden>
+      <h2>Game day</h2>
+      <div class="seg" id="gdSc"></div>
+      <div class="story">
+        <h3 id="gdTitle"></h3>
+        <p id="gdStory"></p>
+        <p class="model-note">The function below models the height (<i class="mv">h</i>) of the ball, in feet, at a given time (<i class="mv">t</i>), in seconds.</p>
+        <div class="eq small" id="gdEq"></div>
+      </div>
+      <div class="row">
+        <button class="btn" id="gdPlay">Play at real speed</button>
+        <button class="btn" id="gdSlow">Slow motion</button>
+      </div>
+      <div class="slider"><label for="gdT">t</label><input type="range" id="gdT" min="0" step="0.025"><output id="gdTo"></output></div>
+      <div class="readout" id="gdRead"></div>
+      <div id="gdQ"></div>
+    </section>
+
+    <!-- REVERSE -->
+    <section data-panel="reverse" hidden>
+      <h2>Reverse engineer</h2>
+      <p class="lede">Build a graph that has exactly this domain and range. The gold zone on the graph is where your graph has to live.</p>
+      <div class="stars" id="rvStars"></div>
+      <div class="target">
+        <div class="tt"><span id="rvNum">Target 1</span><span id="rvMulti"></span></div>
+        <div class="m" id="rvD"></div>
+        <div class="m" id="rvR"></div>
+      </div>
+      <div class="seg" id="rvFam"></div>
+      <div class="eq" id="rvEq"></div>
+      <div class="slider"><label for="rvA">a</label><input type="range" id="rvA"><output id="rvAo"></output></div>
+      <div class="slider"><label for="rvH">h</label><input type="range" id="rvH" min="-6" max="6" step="1"><output id="rvHo"></output></div>
+      <div class="slider"><label for="rvK">k</label><input type="range" id="rvK" min="-6" max="6" step="1"><output id="rvKo"></output></div>
+      <button class="btn primary big" id="rvCheck">Check my graph</button>
+      <div class="row">
+        <button class="btn" id="rvPrev">Previous target</button>
+        <button class="btn" id="rvNext">Next target</button>
+      </div>
+      <div class="result" id="rvFeedback"></div>
+    </section>
+  </aside>
+</main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+"use strict";
+const INF = Infinity;
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- colors ---------- */
+const C = {};
+function readColors(){
+  const cs = getComputedStyle(document.documentElement);
+  ['bg','surface','paper','ink','muted','line','grid','axis','curve','dom','ran','ok','bad','miss','shadow','chip','zone','navy','maize']
+    .forEach(k => C[k] = cs.getPropertyValue('--'+k).trim());
+}
+
+/* ---------- sets ---------- */
+function S(lo, loC, hi, hiC, holes=[]){
+  return { lo, loC: Number.isFinite(lo) ? !!loC : false, hi, hiC: Number.isFinite(hi) ? !!hiC : false,
+           holes: [...holes].sort((a,b)=>a-b) };
+}
+const ALL = () => S(-INF,false,INF,false);
+function inS(v, s){
+  if (v < s.lo || v > s.hi) return false;
+  if (v === s.lo && !s.loC) return false;
+  if (v === s.hi && !s.hiC) return false;
+  for (const h of s.holes) if (Math.abs(h - v) < 1e-9) return false;
+  return true;
+}
+function liveHoles(s){ return s.holes.filter(h => h > s.lo && h < s.hi); }
+function eqSet(a, b){
+  if (a.lo !== b.lo || a.hi !== b.hi) return false;
+  if (Number.isFinite(a.lo) && a.loC !== b.loC) return false;
+  if (Number.isFinite(a.hi) && a.hiC !== b.hiC) return false;
+  const ha = liveHoles(a), hb = liveHoles(b);
+  return ha.length === hb.length && ha.every((h,i) => h === hb[i]);
+}
+const rnd6 = v => Math.round(v*1e6)/1e6;
+function n(v){
+  if (v === INF) return '∞';
+  if (v === -INF) return '−∞';
+  const r = Math.round(v*100)/100;
+  return (r < 0 ? '−' : '') + String(Math.abs(r));
+}
+const V = v => `<i>${v}</i>`;
+function fmtIneq(s, v){
+  const L = Number.isFinite(s.lo), H = Number.isFinite(s.hi);
+  if (L && H && s.lo === s.hi) return `${V(v)} = ${n(s.lo)}`;
+  const hs = liveHoles(s);
+  let base;
+  if (!L && !H) {
+    if (hs.length) return `${V(v)} ≠ ${hs.map(n).join(', ')}`;
+    return 'all real numbers';
+  }
+  if (L && !H) base = `${V(v)} ${s.loC?'≥':'>'} ${n(s.lo)}`;
+  else if (!L && H) base = `${V(v)} ${s.hiC?'≤':'<'} ${n(s.hi)}`;
+  else base = `${n(s.lo)} ${s.loC?'≤':'<'} ${V(v)} ${s.hiC?'≤':'<'} ${n(s.hi)}`;
+  if (hs.length) base += `, ${V(v)} ≠ ${hs.map(n).join(', ')}`;
+  return base;
+}
+function fmtInt(s){
+  const L = Number.isFinite(s.lo), H = Number.isFinite(s.hi);
+  if (L && H && s.lo === s.hi) return `{${n(s.lo)}}`;
+  const pts = [s.lo, ...liveHoles(s), s.hi], parts = [];
+  for (let i = 0; i < pts.length-1; i++){
+    const a = pts[i], b = pts[i+1];
+    const lb = (i === 0 && Number.isFinite(a) && s.loC) ? '[' : '(';
+    const rb = (i === pts.length-2 && Number.isFinite(b) && s.hiC) ? ']' : ')';
+    parts.push(`${lb}${n(a)}, ${n(b)}${rb}`);
+  }
+  return parts.join(' ∪ ');
+}
+
+/* ---------- graphs ---------- */
+function br(f, xa, ca, xb, cb){
+  const e = (x, c) => (Number.isFinite(x) && c !== null) ? (c ? 'closed' : 'open') : null;
+  return { f, xa, xaE: e(xa, ca), xb, xbE: e(xb, cb) };
+}
+function Gr(o){ return Object.assign({ holes:[], asym:{x:[],y:[]} }, o); }
+function pieceRange(f, x1, c1, x2, c2, crits){
+  const c = [{v:rnd6(f(x1)), c:c1}, {v:rnd6(f(x2)), c:c2}];
+  crits.forEach(x => { if (x > x1 && x < x2) c.push({v:rnd6(f(x)), c:true}); });
+  const mn = Math.min(...c.map(o=>o.v)), mx = Math.max(...c.map(o=>o.v));
+  if (mx - mn < 1e-9) return S(mn,true,mn,true);
+  return S(mn, c.some(o=>Math.abs(o.v-mn)<1e-9 && o.c), mx, c.some(o=>Math.abs(o.v-mx)<1e-9 && o.c));
+}
+const gen = {
+  segment(x1,y1,c1,x2,y2,c2){
+    const m=(y2-y1)/(x2-x1), f=x=>y1+m*(x-x1);
+    return Gr({kind:'segment', name:'Line segment', branches:[br(f,x1,c1,x2,c2)], D:S(x1,c1,x2,c2), R:pieceRange(f,x1,c1,x2,c2,[])});
+  },
+  ray(x1,y1,c1,m,dir){
+    const f=x=>y1+m*(x-x1);
+    if (dir > 0) return Gr({kind:'ray', name:'Ray', branches:[br(f,x1,c1,INF,null)], D:S(x1,c1,INF,false),
+      R: m>0 ? S(y1,c1,INF,false) : S(-INF,false,y1,c1)});
+    return Gr({kind:'ray', name:'Ray', branches:[br(f,-INF,null,x1,c1)], D:S(-INF,false,x1,c1),
+      R: m>0 ? S(-INF,false,y1,c1) : S(y1,c1,INF,false)});
+  },
+  line(m,b){
+    const f=x=>m*x+b;
+    return Gr({kind:'line', name:'Line', branches:[br(f,-INF,null,INF,null)], D:ALL(), R: m===0 ? S(b,true,b,true) : ALL()});
+  },
+  lineHole(m,b,h){
+    const f=x=>m*x+b, yh=rnd6(f(h));
+    return Gr({kind:'lineHole', name:'Line with a hole', branches:[br(f,-INF,null,INF,null)], holes:[{x:h,y:yh}],
+      D:S(-INF,false,INF,false,[h]), R:S(-INF,false,INF,false,[yh])});
+  },
+  para(a,h,k){
+    const f=x=>a*(x-h)**2+k;
+    return Gr({kind:'para', vx:h, vy:k, name:'Parabola', branches:[br(f,-INF,null,INF,null)], D:ALL(), R: a>0 ? S(k,true,INF,false) : S(-INF,false,k,true)});
+  },
+  abs(a,h,k){
+    const f=x=>a*Math.abs(x-h)+k;
+    return Gr({kind:'abs', vx:h, vy:k, name:'Absolute value', branches:[br(f,-INF,null,INF,null)], D:ALL(), R: a>0 ? S(k,true,INF,false) : S(-INF,false,k,true)});
+  },
+  cubic(a,h,k){
+    const f=x=>a*(x-h)**3+k;
+    return Gr({kind:'cubic', name:'Cubic', branches:[br(f,-INF,null,INF,null)], D:ALL(), R:ALL()});
+  },
+  sqrt(a,h,k){
+    const f=x=>a*Math.sqrt(Math.max(0,x-h))+k;
+    return Gr({kind:'sqrt', vx:h, vy:k, name:'Square root', branches:[br(f,h,true,INF,null)], D:S(h,true,INF,false), R: a>0 ? S(k,true,INF,false) : S(-INF,false,k,true)});
+  },
+  rat(a,h,k){
+    const f=x=>a/(x-h)+k;
+    return Gr({kind:'rat', name:'Rational', branches:[br(f,-INF,null,h,null), br(f,h,null,INF,null)], asym:{x:[h],y:[k]},
+      D:S(-INF,false,INF,false,[h]), R:S(-INF,false,INF,false,[k])});
+  },
+  paraPiece(a,h,k,x1,c1,x2,c2){
+    const f=x=>a*(x-h)**2+k;
+    return Gr({kind:'paraPiece', name:'Piece of a parabola', branches:[br(f,x1,c1,x2,c2)], D:S(x1,c1,x2,c2), R:pieceRange(f,x1,c1,x2,c2,[h])});
+  }
+};
+
+const ri = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+const coin = () => Math.random() < .5;
+const TIERS = {
+  1: ['segment','ray','paraPiece'],
+  2: ['line','para','abs','cubic','sqrt'],
+  3: ['rat','lineHole','sqrt2','para2','rat','abs2'],
+};
+TIERS[4] = [...TIERS[1], ...TIERS[2], ...TIERS[3]];
+function randGraph(tier, avoid){
+  let g, tries = 0;
+  do { g = makeRandom(pick(TIERS[tier])); tries++; } while (avoid && g.kind === avoid && tries < 6);
+  return g;
+}
+function makeRandom(t){
+  switch(t){
+    case 'segment': {
+      const x1 = ri(-8,3), x2 = Math.min(9, x1 + ri(2,7)); let y1 = ri(-7,7), y2 = ri(-7,7);
+      if (y1 === y2) y2 = y1 > 0 ? y1 - ri(2,6) : y1 + ri(2,6);
+      return gen.segment(x1,y1,coin(),x2,y2,coin());
+    }
+    case 'ray': return gen.ray(ri(-5,5), ri(-5,5), coin(), pick([-2,-1,-0.5,0.5,1,2]), coin()?1:-1);
+    case 'paraPiece': {
+      const a = pick([1,-1]), h = ri(-4,4), x1 = h + ri(-3,1);
+      let x2 = Math.min(h+3, x1 + ri(2,4)); if (x2 < x1 + 2) x2 = x1 + 2;
+      const k = a > 0 ? ri(-6,0) : ri(0,6);
+      return gen.paraPiece(a,h,k,x1,coin(),x2,coin());
+    }
+    case 'line': return gen.line(pick([-3,-2,-1,-0.5,0.5,1,2,3]), ri(-5,5));
+    case 'para': return gen.para(pick([1,-1]), ri(-5,5), ri(-6,6));
+    case 'abs': return gen.abs(pick([1,-1]), ri(-5,5), ri(-6,6));
+    case 'cubic': return gen.cubic(pick([1,-1,0.5,-0.5]), ri(-3,3), ri(-4,4));
+    case 'sqrt': return gen.sqrt(pick([1,-1]), ri(-7,3), ri(-5,5));
+    case 'sqrt2': return gen.sqrt(pick([2,-2,0.5,-0.5,3]), ri(-7,3), ri(-5,5));
+    case 'para2': return gen.para(pick([2,-2,0.5,-0.5]), ri(-5,5), ri(-6,6));
+    case 'abs2': return gen.abs(pick([2,-2,0.5,-0.5,3]), ri(-5,5), ri(-6,6));
+    case 'rat': return gen.rat(pick([1,-1,2,-2,3]), ri(-5,5), ri(-5,5));
+    case 'lineHole': { const m = pick([-2,-1,1,2]), h = ri(-5,5), yh = ri(-6,6); return gen.lineHole(m, yh - m*h, h); }
+  }
+}
+
+/* sampling the curve into visible runs */
+function vis(x,y){ return Number.isFinite(y) && Math.abs(y) <= 10 && x >= -10 && x <= 10; }
+function bis(f, xa, xb){
+  let a = xa, b = xb; const va = vis(a, f(a));
+  for (let k = 0; k < 40; k++){ const m = (a+b)/2; if (vis(m, f(m)) === va) a = m; else b = m; }
+  return va ? a : b;
+}
+function branchRuns(b){
+  const asymA = Number.isFinite(b.xa) && b.xaE === null, asymB = Number.isFinite(b.xb) && b.xbE === null;
+  const s0 = Number.isFinite(b.xa) ? Math.max(b.xa + (asymA ? 1e-9 : 0), -10) : -10;
+  const e0 = Number.isFinite(b.xb) ? Math.min(b.xb - (asymB ? 1e-9 : 0), 10) : 10;
+  if (e0 <= s0) return [];
+  const N = 1400, runs = []; let cur = null, px = s0;
+  for (let i = 0; i <= N; i++){
+    const x = s0 + (e0 - s0)*i/N, y = b.f(x), v = vis(x,y);
+    if (v){
+      if (!cur){
+        cur = {pts:[], st:null, en:null};
+        if (i > 0){ const bx = bis(b.f, px, x); cur.pts.push([bx, b.f(bx)]); cur.st = 'arrow'; }
+        else cur.st = (Number.isFinite(b.xa) && b.xaE && b.xa >= -10) ? b.xaE : 'arrow';
+      }
+      cur.pts.push([x,y]);
+    } else if (cur){
+      const bx = bis(b.f, px, x); cur.pts.push([bx, b.f(bx)]); cur.en = 'arrow'; runs.push(cur); cur = null;
+    }
+    px = x;
+  }
+  if (cur){ cur.en = (Number.isFinite(b.xb) && b.xbE && b.xb <= 10) ? b.xbE : 'arrow'; runs.push(cur); }
+  return runs;
+}
+function graphRuns(g){ if (!g._runs) g._runs = g.branches.flatMap(branchRuns); return g._runs; }
+function vHits(g, x){
+  const out = [];
+  for (const b of g.branches){
+    const inA = x > b.xa || (x === b.xa && b.xaE === 'closed');
+    const inB = x < b.xb || (x === b.xb && b.xbE === 'closed');
+    if (inA && inB && !g.holes.some(h => Math.abs(h.x - x) < 1e-9)) out.push(b.f(x));
+  }
+  return out;
+}
+function hHits(g, y){
+  if (!inS(y, g.R)) return [];
+  const out = [];
+  for (const b of g.branches){
+    const asymA = Number.isFinite(b.xa) && b.xaE === null, asymB = Number.isFinite(b.xb) && b.xbE === null;
+    const s0 = Number.isFinite(b.xa) ? Math.max(b.xa + (asymA?1e-7:0), -10) : -10;
+    const e0 = Number.isFinite(b.xb) ? Math.min(b.xb - (asymB?1e-7:0), 10) : 10;
+    if (e0 <= s0) continue;
+    const N = 2000; let x0 = s0, d0 = b.f(s0) - y;
+    if (Math.abs(d0) < 1e-9) out.push(s0);
+    for (let i = 1; i <= N; i++){
+      const x1 = s0 + (e0-s0)*i/N, d1 = b.f(x1) - y;
+      if (Math.abs(d1) < 1e-9) out.push(x1);
+      else if (Number.isFinite(d0) && Number.isFinite(d1) && d0*d1 < 0 && Math.abs(d0) > 1e-9){
+        let a = x0, c = x1;
+        for (let k = 0; k < 40; k++){ const m = (a+c)/2; if ((b.f(a)-y)*(b.f(m)-y) <= 0) c = m; else a = m; }
+        out.push((a+c)/2);
+      }
+      x0 = x1; d0 = d1;
+    }
+    for (let i = out.length-1; i >= 0; i--){
+      const x = out[i];
+      if ((Math.abs(x - b.xa) < 1e-6 && b.xaE === 'open') || (Math.abs(x - b.xb) < 1e-6 && b.xbE === 'open')) out.splice(i,1);
+    }
+  }
+  out.sort((a,b)=>a-b);
+  return out.filter((x,i) => i === 0 || Math.abs(x - out[i-1]) > 1e-4);
+}
+
+/* families for lab + reverse */
+const FAMS = [
+  {id:'linear', label:'Linear'}, {id:'quadratic', label:'Quadratic'}, {id:'abs', label:'Absolute value'},
+  {id:'cubic', label:'Cubic'}, {id:'sqrt', label:'Square root'}, {id:'rational', label:'Rational'}
+];
+const AV_NZ = [-3,-2,-1.5,-1,-0.5,0.5,1,1.5,2,3];
+const AV_LIN = [-3,-2,-1.5,-1,-0.5,0,0.5,1,1.5,2,3];
+const aList = fam => fam === 'linear' ? AV_LIN : AV_NZ;
+function famGraph(fam, a, h, k){
+  switch(fam){
+    case 'linear': return gen.line(a, k - a*h);
+    case 'quadratic': return gen.para(a,h,k);
+    case 'abs': return gen.abs(a,h,k);
+    case 'cubic': return gen.cubic(a,h,k);
+    case 'sqrt': return gen.sqrt(a,h,k);
+    case 'rational': return gen.rat(a,h,k);
+  }
+}
+function eqHTML(fam, a, h, k){
+  const A = a === 1 ? '' : a === -1 ? '−' : n(a);
+  const inner = h === 0 ? V('x') : `${V('x')} ${h > 0 ? '−' : '+'} ${Math.abs(h)}`;
+  const K = k === 0 ? '' : ` ${k > 0 ? '+' : '−'} ${Math.abs(k)}`;
+  let body;
+  switch(fam){
+    case 'linear':
+      if (a === 0) return `${V('y')} = ${n(k)}`;
+      body = h === 0 ? `${A}${V('x')}` : `${A}(${inner})`; break;
+    case 'quadratic': body = h === 0 ? `${A}${V('x')}²` : `${A}(${inner})²`; break;
+    case 'abs': body = `${A}|${inner}|`; break;
+    case 'cubic': body = h === 0 ? `${A}${V('x')}³` : `${A}(${inner})³`; break;
+    case 'sqrt': body = `${A}√<span class="rad">${inner}</span>`; break;
+    case 'rational': body = `<span class="frac"><span>${n(a)}</span><span>${inner}</span></span>`; break;
+  }
+  return `${V('y')} = ${body}${K}`;
+}
+
+/* ---------- canvas & geometry ---------- */
+const cv = $('#cv'); let ctx = cv.getContext('2d');
+let W = 600, H = 600, dpr = 1;
+const G = {};
+function layout(){
+  const stage = $('#stage');
+  W = Math.max(290, stage.clientWidth - 20);
+  if (st.mode === 'gameday'){ gdLayout(); dpr = window.devicePixelRatio || 1; cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); cv.style.height = H + 'px'; return; }
+  const small = W < 460;
+  const Sx = small ? 62 : 74, padR = small ? 16 : 26, padT = small ? 16 : 24;
+  G.S = Sx; G.x0 = Sx + 4; G.y0 = padT;
+  G.P = Math.min(W - G.x0 - padR, 660);
+  H = G.y0 + G.P + Sx;
+  G.laneAD = G.y0 + G.P + 18; G.laneBD = G.y0 + G.P + 40; G.labD = G.y0 + G.P + 60;
+  G.laneAR = G.x0 - 18; G.laneBR = G.x0 - 40; G.labR = G.x0 - 60;
+  G.tickStep = G.P < 380 ? 5 : 2;
+  dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  cv.style.height = H + 'px';
+}
+const X = v => G.x0 + (v + 10)/20*G.P;
+const Y = v => G.y0 + (10 - v)/20*G.P;
+const invX = px => (px - G.x0)/G.P*20 - 10;
+const invY = py => 10 - (py - G.y0)/G.P*20;
+function along(o, v){
+  if (o === 'D') return v === -INF ? X(-10) : v === INF ? X(10) : X(v);
+  return v === -INF ? Y(-10) : v === INF ? Y(10) : Y(v);
+}
+function P2(o, v, lane){ return o === 'D' ? [along('D', v), lane] : [lane, along('R', v)]; }
+
+function dot(x, y, closed, col, r, bg){
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
+  if (closed){ ctx.fillStyle = col; ctx.fill(); }
+  else { ctx.fillStyle = bg; ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = col; ctx.stroke(); }
+}
+function arrow(x, y, dx, dy, col, size){
+  const L = Math.hypot(dx,dy) || 1; dx /= L; dy /= L; const px = -dy, py = dx;
+  ctx.fillStyle = col; ctx.beginPath();
+  ctx.moveTo(x + dx*size*.5, y + dy*size*.5);
+  ctx.lineTo(x - dx*size*.5 + px*size*.45, y - dy*size*.5 + py*size*.45);
+  ctx.lineTo(x - dx*size*.5 - px*size*.45, y - dy*size*.5 - py*size*.45);
+  ctx.closePath(); ctx.fill();
+}
+function endMarker(o, lane, v, closed, side, col, r){
+  const p = P2(o, v, lane);
+  if (!Number.isFinite(v)){
+    const d = o === 'D' ? [side, 0] : [0, -side];
+    arrow(p[0] + d[0]*5, p[1] + d[1]*5, d[0], d[1], col, 15);
+  } else dot(p[0], p[1], closed, col, r, C.surface);
+}
+function laneSet(o, lane, s, col, opt = {}){
+  const w = opt.w || 6, r = opt.r || 6;
+  if (Number.isFinite(s.lo) && s.lo === s.hi){ const p = P2(o, s.lo, lane); dot(p[0], p[1], true, col, r+.5, C.surface); return; }
+  const pts = [s.lo, ...liveHoles(s), s.hi];
+  ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'butt';
+  if (opt.dash) ctx.setLineDash([7,5]);
+  ctx.beginPath();
+  for (let i = 0; i < pts.length-1; i++){ const a = P2(o, pts[i], lane), b = P2(o, pts[i+1], lane); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); }
+  ctx.stroke(); ctx.restore();
+  if (opt.noMarkers) return;
+  endMarker(o, lane, s.lo, s.loC, -1, col, r);
+  endMarker(o, lane, s.hi, s.hiC, 1, col, r);
+  liveHoles(s).forEach(h => { const p = P2(o, h, lane); dot(p[0], p[1], false, col, r-.5, C.surface); });
+}
+function spans(o, fn){
+  const out = []; let cur = null;
+  for (let i = 0; i < G.P; i++){
+    const v = o === 'D' ? invX(G.x0 + i + .5) : invY(G.y0 + i + .5);
+    const k = fn(v, i);
+    if (cur && cur.key === k) cur.b = i + 1;
+    else { if (cur && cur.key != null) out.push(cur); cur = {a:i, b:i+1, key:k}; }
+  }
+  if (cur && cur.key != null) out.push(cur);
+  return out;
+}
+function fillBand(o, sp, col, alpha){
+  ctx.save(); ctx.globalAlpha = alpha; ctx.fillStyle = col;
+  sp.forEach(s => { if (o === 'D') ctx.fillRect(G.x0 + s.a, G.y0, s.b - s.a, G.P); else ctx.fillRect(G.x0, G.y0 + s.a, G.P, s.b - s.a); });
+  ctx.restore();
+}
+function fillLane(o, lane, sp, colFn, h){
+  sp.forEach(s => {
+    ctx.fillStyle = colFn(s.key);
+    if (o === 'D') ctx.fillRect(G.x0 + s.a, lane - h/2, s.b - s.a, h);
+    else ctx.fillRect(lane - h/2, G.y0 + s.a, h, s.b - s.a);
+  });
+}
+
+function drawBase(){
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = C.paper; ctx.fillRect(G.x0, G.y0, G.P, G.P);
+}
+function drawGrid(){
+  ctx.lineWidth = 1; ctx.strokeStyle = C.grid; ctx.beginPath();
+  for (let i = -10; i <= 10; i++){
+    if (i === 0) continue;
+    const x = Math.round(X(i)) + .5, y = Math.round(Y(i)) + .5;
+    ctx.moveTo(x, G.y0); ctx.lineTo(x, G.y0 + G.P); ctx.moveTo(G.x0, y); ctx.lineTo(G.x0 + G.P, y);
+  }
+  ctx.stroke();
+  if (G.mini){ ctx.save(); ctx.globalAlpha = .45; ctx.strokeStyle = C.axis; ctx.lineWidth = 1; ctx.beginPath();
+    [-5,5].forEach(i => { ctx.moveTo(X(i), G.y0); ctx.lineTo(X(i), G.y0 + G.P); ctx.moveTo(G.x0, Y(i)); ctx.lineTo(G.x0 + G.P, Y(i)); });
+    ctx.stroke(); ctx.restore(); }
+  ctx.strokeStyle = C.axis; ctx.lineWidth = 1.5; ctx.beginPath();
+  ctx.moveTo(X(0), G.y0); ctx.lineTo(X(0), G.y0 + G.P); ctx.moveTo(G.x0, Y(0)); ctx.lineTo(G.x0 + G.P, Y(0)); ctx.stroke();
+  if (!G.mini){
+  ctx.fillStyle = C.axis; ctx.font = 'italic 16px "STIX Two Text", Georgia, serif';
+  ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText('x', G.x0 + G.P - 5, Y(0) - 3);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText('y', X(0) + 6, G.y0 + 3);
+  }
+  ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(G.x0 + .5, G.y0 + .5, G.P - 1, G.P - 1);
+}
+function drawStrips(showB){
+  ctx.strokeStyle = C.line; ctx.lineWidth = 1.5;
+  const lanesD = showB ? [G.laneAD, G.laneBD] : [G.laneAD];
+  const lanesR = showB ? [G.laneAR, G.laneBR] : [G.laneAR];
+  ctx.beginPath();
+  lanesD.forEach(l => { ctx.moveTo(X(-10), l); ctx.lineTo(X(10), l); });
+  lanesR.forEach(l => { ctx.moveTo(l, Y(-10)); ctx.lineTo(l, Y(10)); });
+  ctx.stroke();
+  ctx.strokeStyle = C.axis; ctx.lineWidth = 1; ctx.beginPath();
+  for (let i = -10; i <= 10; i++){
+    const t = i % G.tickStep === 0 ? 4 : 2;
+    lanesD.forEach(l => { ctx.moveTo(X(i), l - t); ctx.lineTo(X(i), l + t); });
+    lanesR.forEach(l => { ctx.moveTo(l - t, Y(i)); ctx.lineTo(l + t, Y(i)); });
+  }
+  ctx.stroke();
+  ctx.fillStyle = C.muted; ctx.font = '500 11px Lexend, system-ui, sans-serif';
+  const labY = showB ? G.labD : G.laneAD + 20, labX = showB ? G.labR : G.laneAR - 20;
+  for (let i = -10; i <= 10; i += G.tickStep){
+    const t = n(i);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, X(i), labY);
+    ctx.textAlign = 'center'; ctx.fillText(t, labX, Y(i));
+  }
+  ctx.font = 'italic 15px "STIX Two Text", Georgia, serif'; ctx.fillStyle = C.dom;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText('x', X(10) + 8, G.laneAD);
+  ctx.fillStyle = C.ran; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText('y', G.laneAR, Y(10) - 8);
+}
+function drawAsym(g){
+  if (!g.asym.x.length && !g.asym.y.length) return;
+  ctx.save(); ctx.setLineDash([6,6]); ctx.strokeStyle = C.axis; ctx.lineWidth = 1.5; ctx.beginPath();
+  g.asym.x.forEach(x => { ctx.moveTo(X(x), G.y0); ctx.lineTo(X(x), G.y0 + G.P); });
+  g.asym.y.forEach(y => { ctx.moveTo(G.x0, Y(y)); ctx.lineTo(G.x0 + G.P, Y(y)); });
+  ctx.stroke(); ctx.restore();
+}
+function drawCurve(g){
+  if (!g) return;
+  drawAsym(g);
+  const runs = graphRuns(g);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(G.x0, G.y0, G.P, G.P); ctx.clip();
+  const sc = G.mini ? .62 : 1;
+  ctx.strokeStyle = C.curve; ctx.lineWidth = 3.2*sc; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  runs.forEach(r => {
+    ctx.beginPath(); r.pts.forEach((p,i) => { const x = X(p[0]), y = Y(p[1]); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); }); ctx.stroke();
+  });
+  ctx.restore();
+  runs.forEach(r => {
+    [['st', 0, 1], ['en', r.pts.length-1, -1]].forEach(([key, idx, step]) => {
+      const p = r.pts[idx], px = X(p[0]), py = Y(p[1]), type = r[key];
+      if (type === 'arrow'){
+        let j = idx;
+        while (j + step >= 0 && j + step < r.pts.length && Math.hypot(X(r.pts[j][0]) - px, Y(r.pts[j][1]) - py) < 10) j += step;
+        const q = r.pts[j];
+        arrow(px, py, px - X(q[0]), py - Y(q[1]), C.curve, 15*sc);
+      } else dot(px, py, type === 'closed', C.curve, 5.5*sc, C.paper);
+    });
+  });
+  g.holes.forEach(h => dot(X(h.x), Y(h.y), false, C.curve, 5.5*sc, C.paper));
+}
+
+/* ---------- global state ---------- */
+const st = { mode:'caster', xp:0, streak:0, badges:new Set(), perfects:{1:0,2:0,3:0,4:0}, codes:{} };
+const BADGES = [
+  {id:'first', name:'First perfect shadow'},
+  {id:'streak3', name:'Three in a row'},
+  {id:'streak5', name:'Five in a row'},
+  {id:'asym', name:'Asymptote avoider'},
+  {id:'hole', name:'Hole hunter'},
+  {id:'inf', name:'Infinity walker'},
+  {id:'lab', name:'Lab scientist'},
+  {id:'rev5', name:'Reverse engineer'},
+  {id:'two', name:'Two ways to win'},
+  {id:'detective', name:'Case closed'},
+  {id:'memory', name:'Speed matcher'},
+  {id:'gameday', name:'Game day ready'},
+];
+function award(id){
+  if (st.badges.has(id)) return;
+  st.badges.add(id);
+  const b = BADGES.find(x => x.id === id);
+  toast(`Badge earned: ${b.name}`);
+  renderBadges(); renderStats();
+}
+function addXP(v){
+  const before = Math.floor(st.xp/300);
+  st.xp += v;
+  if (Math.floor(st.xp/300) > before) setTimeout(() => toast(`Level up! You’re now level ${Math.floor(st.xp/300)+1}.`), 900);
+  renderStats();
+}
+function renderStats(){
+  $('#sLevel').textContent = 'Level ' + (Math.floor(st.xp/300)+1);
+  $('#sXP').textContent = st.xp + ' XP';
+  $('#sBar').style.width = ((st.xp % 300)/300*100) + '%';
+  $('#sStreak').textContent = st.streak;
+  $('#sBadges').textContent = st.badges.size;
+}
+function renderBadges(){
+  $('#badges').innerHTML = BADGES.map(b => `<span class="badge ${st.badges.has(b.id)?'on':''}">${b.name}</span>`).join('');
+}
+let toastT;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ================= LASER ================= */
+const PRESETS = [
+  ['Line segment', () => gen.segment(-6,-2,true,4,5,false)],
+  ['Ray', () => gen.ray(-3,1,true,1,1)],
+  ['Parabola', () => gen.para(1,2,-3)],
+  ['Absolute value', () => gen.abs(-1,-1,4)],
+  ['Square root', () => gen.sqrt(1,-4,-2)],
+  ['Cubic', () => gen.cubic(0.5,1,0)],
+  ['Rational', () => gen.rat(2,3,-1)],
+  ['Line with a hole', () => gen.lineHole(1,1,2)],
+  ['Piece of a parabola', () => gen.paraPiece(-1,0,5,-2,true,3,false)],
+];
+const BINS = 401;
+const L = { g: PRESETS[0][1](), dir:'v', pos:null, last:null, trD:new Uint8Array(BINS), trR:new Uint8Array(BINS), down:false };
+const binOf = v => Math.round((v + 10)/0.05);
+const binV = i => rnd6(-10 + i*0.05);
+function laserClear(){ L.trD.fill(0); L.trR.fill(0); L.pos = null; L.last = null; laserPanel(); draw(); }
+function laserSet(v){
+  v = Math.max(-10, Math.min(10, Math.round(v*10)/10));
+  const tr = L.dir === 'v' ? L.trD : L.trR, set = L.dir === 'v' ? L.g.D : L.g.R;
+  const a = binOf(L.last ?? v), b = binOf(v);
+  for (let i = Math.min(a,b); i <= Math.max(a,b); i++) tr[i] = inS(binV(i), set) ? 1 : 2;
+  L.pos = v; L.last = v;
+  laserPanel(); draw();
+}
+function laserPanel(){
+  const r = $('#lRead');
+  if (L.pos === null){ r.innerHTML = L.dir === 'v'
+    ? 'Drag across the graph. The <b>vertical</b> laser checks one <i>x</i>-value at a time. Arrow keys work too.'
+    : 'Drag up and down the graph. The <b>horizontal</b> laser checks one <i>y</i>-value at a time. Arrow keys work too.'; }
+  else if (L.dir === 'v'){
+    const hs = vHits(L.g, L.pos), x = n(L.pos);
+    if (!hs.length) r.innerHTML = `<span class="m">${V('x')} = ${x}</span>: the laser misses. No point on the graph has <span class="m">${V('x')} = ${x}</span>, so it’s <b>not</b> in the domain.`;
+    else {
+      const y = hs[0];
+      r.innerHTML = Math.abs(y) <= 10
+        ? `<span class="m">${V('x')} = ${x}</span>: the laser hits the graph at <span class="m">(${x}, ${n(y)})</span>. So <span class="m">${x}</span> <b>is</b> in the domain.`
+        : `<span class="m">${V('x')} = ${x}</span>: the laser hits the graph ${y > 0 ? 'above' : 'below'} the screen. It still counts, so <span class="m">${x}</span> <b>is</b> in the domain.`;
+    }
+  } else {
+    const y = n(L.pos), on = inS(L.pos, L.g.R), hs = hHits(L.g, L.pos);
+    if (!on) r.innerHTML = `<span class="m">${V('y')} = ${y}</span>: the laser misses. The graph never reaches height <span class="m">${y}</span>, so it’s <b>not</b> in the range.`;
+    else if (!hs.length) r.innerHTML = `<span class="m">${V('y')} = ${y}</span>: the graph reaches this height off the edge of the screen (the arrows say it keeps going). So <span class="m">${y}</span> <b>is</b> in the range.`;
+    else r.innerHTML = `<span class="m">${V('y')} = ${y}</span>: the laser hits the graph at <span class="m">${hs.slice(0,3).map(x => `(${n(x)}, ${y})`).join(', ')}</span>${hs.length>3?'…':''}. So <span class="m">${y}</span> <b>is</b> in the range.`;
+  }
+  const cD = L.trD.reduce((s,v) => s + (v?1:0), 0), cR = L.trR.reduce((s,v) => s + (v?1:0), 0);
+  const pD = Math.round(cD/BINS*100), pR = Math.round(cR/BINS*100);
+  $('#lPctD').textContent = pD + '%'; $('#lBarD').style.width = pD + '%';
+  $('#lPctR').textContent = pR + '%'; $('#lBarR').style.width = pR + '%';
+  $('#lFoundD').innerHTML = cD === BINS ? `You found the domain: <span class="m">${fmtIneq(L.g.D,'x')}</span>, or <span class="m">${fmtInt(L.g.D)}</span>` : '';
+  $('#lFoundR').innerHTML = cR === BINS ? `You found the range: <span class="m">${fmtIneq(L.g.R,'y')}</span>, or <span class="m">${fmtInt(L.g.R)}</span>` : '';
+  if (cD === BINS && cR === BINS && !L.done){ L.done = true; addXP(20); toast('Both sweeps complete: +20 XP'); }
+}
+function drawTrail(o, lane, tr, set, col){
+  const sp = spans(o, v => { const s = tr[binOf(v)]; return s === 1 ? 'hit' : s === 2 ? 'miss' : null; });
+  sp.filter(s => s.key === 'miss').forEach(s => fillLane(o, lane, [s], () => C.axis, 2));
+  fillLane(o, lane, sp.filter(s => s.key === 'hit'), () => col, 7);
+  const seen = v => tr[binOf(v)] !== 0;
+  if (Number.isFinite(set.lo) && seen(set.lo)) endMarker(o, lane, set.lo, set.loC, -1, col, 6);
+  if (Number.isFinite(set.hi) && seen(set.hi)) endMarker(o, lane, set.hi, set.hiC, 1, col, 6);
+  if (!Number.isFinite(set.lo) && tr[0] === 1) endMarker(o, lane, -INF, false, -1, col, 6);
+  if (!Number.isFinite(set.hi) && tr[BINS-1] === 1) endMarker(o, lane, INF, false, 1, col, 6);
+  liveHoles(set).forEach(h => { if (seen(h)){ const p = P2(o, h, lane); dot(p[0], p[1], false, col, 5.5, C.surface); } });
+  if (Number.isFinite(set.lo) && set.lo === set.hi && seen(set.lo)){ const p = P2(o, set.lo, lane); dot(p[0], p[1], true, col, 6.5, C.surface); }
+}
+function drawLaser(){
+  drawBase(); drawGrid(); drawCurve(L.g); drawStrips(false);
+  drawTrail('D', G.laneAD, L.trD, L.g.D, C.dom);
+  drawTrail('R', G.laneAR, L.trR, L.g.R, C.ran);
+  if (L.pos === null) return;
+  ctx.save();
+  if (L.dir === 'v'){
+    const x = X(L.pos);
+    ctx.shadowColor = C.dom; ctx.shadowBlur = 12; ctx.strokeStyle = C.dom; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(x, G.y0); ctx.lineTo(x, G.laneAD + 8); ctx.stroke(); ctx.restore();
+    vHits(L.g, L.pos).forEach(y => { if (Math.abs(y) <= 10){ dot(x, Y(y), true, C.paper, 9, C.paper); dot(x, Y(y), true, C.dom, 6.5, C.paper); } });
+  } else {
+    const y = Y(L.pos);
+    ctx.shadowColor = C.ran; ctx.shadowBlur = 12; ctx.strokeStyle = C.ran; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(G.laneAR - 8, y); ctx.lineTo(G.x0 + G.P, y); ctx.stroke(); ctx.restore();
+    hHits(L.g, L.pos).forEach(x => { dot(X(x), y, true, C.paper, 9, C.paper); dot(X(x), y, true, C.ran, 6.5, C.paper); });
+  }
+}
+
+/* ================= CASTER ================= */
+const CA = { tier:1, g:null, D:null, R:null, phase:'answer', anim:0, retry:false, drag:null };
+function casterNew(){
+  CA.g = randGraph(CA.tier, CA.g && CA.g.kind);
+  CA.D = S(-3,true,3,true); CA.R = S(-3,true,3,true);
+  CA.phase = 'answer'; CA.anim = 0; CA.retry = false;
+  $('#result').innerHTML = ''; $('#castBtn').hidden = false; $('#afterBtns').hidden = true;
+  casterPanel(); draw();
+}
+function casterPanel(){
+  $('#aD').innerHTML = fmtIneq(CA.D,'x'); $('#aDi').innerHTML = fmtInt(CA.D);
+  $('#aR').innerHTML = fmtIneq(CA.R,'y'); $('#aRi').innerHTML = fmtInt(CA.R);
+  const lock = CA.phase !== 'answer';
+  ['#holeD','#holeR','#castBtn'].forEach(s => $(s).disabled = lock);
+}
+function catOf(v, tru, ans){
+  const t = inS(v, tru), a = inS(v, ans);
+  return t && a ? 'ok' : a ? 'bad' : t ? 'miss' : null;
+}
+const catCol = k => k === 'ok' ? C.ok : k === 'bad' ? C.bad : C.miss;
+function drawCaster(){
+  drawBase(); drawGrid();
+  const p = CA.anim;
+  if (CA.phase === 'answer'){
+    fillBand('D', spans('D', v => inS(v, CA.D) ? 1 : null), C.dom, .10);
+    fillBand('R', spans('R', v => inS(v, CA.R) ? 1 : null), C.ran, .10);
+  } else {
+    const nD = p*G.P, nR = (1-p)*G.P;
+    ['ok','bad','miss'].forEach(k => {
+      fillBand('D', spans('D', (v,i) => i < nD && catOf(v, CA.g.D, CA.D) === k ? 1 : null), catCol(k), .10);
+      fillBand('R', spans('R', (v,i) => i > nR && catOf(v, CA.g.R, CA.R) === k ? 1 : null), catCol(k), .10);
+    });
+  }
+  drawCurve(CA.g);
+  drawStrips(true);
+  if (CA.phase === 'answer'){
+    laneSet('D', G.laneBD, CA.D, C.dom, {r:7.5});
+    laneSet('R', G.laneBR, CA.R, C.ran, {r:7.5});
+    if (CA.drag){
+      const h = CA.drag, s = h.o === 'D' ? CA.D : CA.R, lane = h.o === 'D' ? G.laneBD : G.laneBR;
+      const v = h.key === 'hole' ? s.holes[h.i] : s[h.key], q = P2(h.o, v, lane);
+      ctx.beginPath(); ctx.arc(q[0], q[1], 13, 0, Math.PI*2); ctx.strokeStyle = C.maize; ctx.lineWidth = 3; ctx.stroke();
+    }
+  } else {
+    const nD = p*G.P, nR = (1-p)*G.P;
+    if (p < 1){
+      fillLane('D', G.laneAD, spans('D', (v,i) => i < nD && inS(v, CA.g.D) ? 1 : null), () => C.shadow, 7);
+      fillLane('R', G.laneAR, spans('R', (v,i) => i > nR && inS(v, CA.g.R) ? 1 : null), () => C.shadow, 7);
+    } else {
+      laneSet('D', G.laneAD, CA.g.D, C.shadow, {w:7});
+      laneSet('R', G.laneAR, CA.g.R, C.shadow, {w:7});
+    }
+    fillLane('D', G.laneBD, spans('D', (v,i) => i < nD ? catOf(v, CA.g.D, CA.D) : null), catCol, 8);
+    fillLane('R', G.laneBR, spans('R', (v,i) => i > nR ? catOf(v, CA.g.R, CA.R) : null), catCol, 8);
+    laneSet('D', G.laneBD, CA.D, C.ink, {w:0.01, r:6});
+    laneSet('R', G.laneBR, CA.R, C.ink, {w:0.01, r:6});
+  }
+}
+function casterHandles(){
+  const out = [];
+  [['D', CA.D, G.laneBD], ['R', CA.R, G.laneBR]].forEach(([o, s, lane]) => {
+    s.holes.forEach((h, i) => out.push({o, key:'hole', i, p:P2(o, h, lane)}));
+    out.push({o, key:'lo', p:P2(o, s.lo, lane)});
+    out.push({o, key:'hi', p:P2(o, s.hi, lane)});
+  });
+  return out;
+}
+function hitHandle(mx, my){
+  let best = null, bd = 20;
+  casterHandles().forEach(h => { const d = Math.hypot(h.p[0]-mx, h.p[1]-my); if (d < bd){ bd = d; best = h; } });
+  return best;
+}
+function dragHandle(h, mx, my){
+  const s = h.o === 'D' ? CA.D : CA.R;
+  const raw = h.o === 'D' ? invX(mx) : invY(my);
+  const cl = v => Math.max(-10, Math.min(10, Math.round(v)));
+  if (h.key === 'lo'){
+    if (raw < -10.6){ s.lo = -INF; s.loC = false; }
+    else { let v = cl(raw); if (Number.isFinite(s.hi)) v = Math.min(v, s.hi); if (!Number.isFinite(s.lo)) s.loC = true; s.lo = v; }
+  } else if (h.key === 'hi'){
+    if (raw > 10.6){ s.hi = INF; s.hiC = false; }
+    else { let v = cl(raw); if (Number.isFinite(s.lo)) v = Math.max(v, s.lo); if (!Number.isFinite(s.hi)) s.hiC = true; s.hi = v; }
+  } else s.holes[h.i] = cl(raw);
+}
+function tapHandle(h){
+  const s = h.o === 'D' ? CA.D : CA.R;
+  if (h.key === 'hole'){ s.holes.splice(h.i, 1); return; }
+  if (h.key === 'lo' && Number.isFinite(s.lo)) s.loC = !s.loC;
+  if (h.key === 'hi' && Number.isFinite(s.hi)) s.hiC = !s.hiC;
+  if (Number.isFinite(s.lo) && s.lo === s.hi){ s.loC = s.hiC = true; }
+}
+function addHole(o){
+  if (CA.phase !== 'answer') return;
+  const s = o === 'D' ? CA.D : CA.R;
+  const lo = Number.isFinite(s.lo) ? s.lo : -10, hi = Number.isFinite(s.hi) ? s.hi : 10;
+  const mid = Math.round((lo + hi)/2);
+  for (let d = 0; d <= 10; d++){
+    for (const c of [mid + d, mid - d]){
+      if (c > lo && c < hi && !s.holes.includes(c)){ s.holes.push(c); s.holes.sort((a,b)=>a-b); casterPanel(); draw(); toast('Hole added. Drag it into place, or tap it to remove it.'); return; }
+    }
+  }
+}
+
+/* scoring */
+function scoreSet(ans, tru, o){
+  const v = o === 'D' ? 'x' : 'y', name = o === 'D' ? 'Domain' : 'Range';
+  const W2 = o === 'D' ? {lo:'left end', hi:'right end'} : {lo:'bottom', hi:'top'};
+  const dirW = o === 'D' ? {lo:'left', hi:'right'} : {lo:'down', hi:'up'};
+  let pts = 0; const notes = [];
+  const single = Number.isFinite(tru.lo) && tru.lo === tru.hi;
+  ['lo','hi'].forEach(k => {
+    const a = ans[k], t = tru[k], aC = ans[k+'C'], tC = tru[k+'C'], lab = `${name} ${W2[k]}`;
+    const extreme = o === 'D' ? (k === 'lo' ? 'starts' : 'ends') : (k === 'lo' ? 'reaches down to' : 'reaches up to');
+    if (!Number.isFinite(t)){
+      if (!Number.isFinite(a)) pts += 20;
+      else notes.push(`${lab}: the graph keeps going ${dirW[k]} forever (look for the arrow). Drag that handle past the end for ${k==='lo'?'−∞':'∞'}.`);
+    } else if (!Number.isFinite(a)){
+      notes.push(`${lab}: the graph doesn’t go on forever this way. Its shadow ${o==='D' ? `stops at <span class="m">${V(v)} = ${n(t)}</span>` : `${extreme} <span class="m">${V(v)} = ${n(t)}</span>`}.`);
+    } else if (a === t){
+      pts += 12;
+      if (aC === tC || single) pts += 8;
+      else notes.push(tC
+        ? `${lab}: <span class="m">${V(v)} = ${n(t)}</span> is on the graph (a solid point), so it should be <b>included</b>. Tap that handle to close it.`
+        : `${lab}: <span class="m">${V(v)} = ${n(t)}</span> is <b>not</b> on the graph (an open circle, or never quite reached), so leave it out. Tap that handle to open it.`);
+    } else {
+      notes.push(o === 'D'
+        ? `${lab}: the graph’s shadow ${extreme} at <span class="m">${V(v)} = ${n(t)}</span>, not ${n(a)}.`
+        : `${lab}: the graph’s shadow ${extreme} <span class="m">${V(v)} = ${n(t)}</span>, not ${n(a)}.`);
+    }
+  });
+  const th = liveHoles(tru), ah = liveHoles(ans);
+  const missing = th.filter(h => !ah.includes(h)), extra = ah.filter(h => !th.includes(h));
+  if (!missing.length && !extra.length) pts += 10;
+  missing.forEach(h => notes.push(`${name}: there’s a gap at <span class="m">${V(v)} = ${n(h)}</span>. The graph never reaches it, so add a hole there.`));
+  extra.forEach(h => notes.push(`${name}: the graph <b>does</b> reach <span class="m">${V(v)} = ${n(h)}</span>, so remove that hole.`));
+  return {pts, notes, perfect: pts === 50};
+}
+function cast(){
+  if (CA.phase !== 'answer') return;
+  CA.phase = 'reveal'; casterPanel();
+  const t0 = performance.now(), dur = reduceMotion ? 0 : 950;
+  const step = t => {
+    CA.anim = dur ? Math.min(1, (t - t0)/dur) : 1; draw();
+    if (CA.anim < 1) requestAnimationFrame(step); else finishCast();
+  };
+  requestAnimationFrame(step);
+}
+function finishCast(){
+  CA.phase = 'done';
+  const d = scoreSet(CA.D, CA.g.D, 'D'), r = scoreSet(CA.R, CA.g.R, 'R');
+  const score = d.pts + r.pts, perfect = d.perfect && r.perfect;
+  let swapNote = '';
+  if (!perfect && eqSet(CA.D, CA.g.R) && eqSet(CA.R, CA.g.D))
+    swapNote = `<p class="verdict"><b>Look closely:</b> your domain and range are swapped. Domain is about <span class="m">${V('x')}</span> (left to right). Range is about <span class="m">${V('y')}</span> (bottom to top).</p>`;
+  let gained = 0;
+  if (!CA.retry){
+    if (perfect){
+      st.streak++; gained = 100 + Math.min(st.streak - 1, 5)*10;
+      st.perfects[CA.tier]++;
+      award('first');
+      if (st.streak >= 3) award('streak3');
+      if (st.streak >= 5) award('streak5');
+      if (CA.g.kind === 'rat') award('asym');
+      if (CA.g.kind === 'lineHole') award('hole');
+      if (!Number.isFinite(CA.g.D.lo) && !Number.isFinite(CA.g.D.hi) && !Number.isFinite(CA.g.R.lo) && !Number.isFinite(CA.g.R.hi)) award('inf');
+      if (st.perfects[CA.tier] === 5 && !st.codes[CA.tier]) st.codes[CA.tier] = makeCode(CA.tier);
+    } else { st.streak = 0; gained = Math.round(score/2); }
+    addXP(gained);
+  }
+  const sec = (title, res) => `<h3 class="${res.perfect?'okc':'badc'}">${title}: ${res.perfect ? 'exactly right' : `${res.pts} of 50`}</h3>${res.notes.length ? `<ul>${res.notes.map(x => `<li>${x}</li>`).join('')}</ul>` : ''}`;
+  $('#result').innerHTML = `<div class="result">
+    <div class="score"><b>${score}</b><span>out of 100${CA.retry ? ' (practice round, no XP)' : ` · +${gained} XP`}</span></div>
+    ${swapNote}
+    <div class="verdict">${sec('Domain', d)}${sec('Range', r)}</div>
+    <div class="verdict"><h3>The graph’s shadow</h3>
+      <div>Domain: <span class="m">${fmtIneq(CA.g.D,'x')}</span> &nbsp;or&nbsp; <span class="m">${fmtInt(CA.g.D)}</span></div>
+      <div>Range: <span class="m">${fmtIneq(CA.g.R,'y')}</span> &nbsp;or&nbsp; <span class="m">${fmtInt(CA.g.R)}</span></div></div>
+  </div>`;
+  const code = st.codes[CA.tier];
+  $('#codeBox').innerHTML = code ? `Level ${CA.tier} complete (5 perfect shadows). Your code for Canvas: <b>${code}</b>` : `<span>${st.perfects[CA.tier]} of 5 perfect shadows to unlock the level ${CA.tier} code.</span>`;
+  $('#castBtn').hidden = true; $('#afterBtns').hidden = false;
+  if (perfect) toast(st.streak > 1 ? `Perfect! Streak: ${st.streak}` : 'Perfect shadow!');
+  $('#nextBtn').focus({preventScroll:true});
+}
+function makeCode(tier){
+  const d = new Date(), seed = (tier*7919 + d.getMonth()*131 + d.getDate()*17 + st.xp) % 46656;
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = ''; let x = seed*2654435761 % 4294967296;
+  for (let i = 0; i < 5; i++){ s += chars[x % chars.length]; x = Math.floor(x / chars.length) + (i+3)*97; }
+  return `DR${tier}-${s}`;
+}
+
+/* ================= LAB ================= */
+const LAB = { fam:'quadratic', a:1, h:0, k:0, disc:{}, tried:{} };
+FAMS.forEach(f => { LAB.disc[f.id] = {D:new Set(), R:new Set()}; LAB.tried[f.id] = new Set(); });
+function labGraph(){ return famGraph(LAB.fam, LAB.a, LAB.h, LAB.k); }
+function setupSliders(prefix, obj){
+  const aEl = $(`#${prefix}A`);
+  const list = aList(obj.fam);
+  aEl.min = 0; aEl.max = list.length - 1; aEl.step = 1;
+  let idx = list.indexOf(obj.a);
+  if (idx < 0){ obj.a = obj.a === 0 ? 1 : obj.a; idx = list.indexOf(obj.a); if (idx < 0) idx = list.indexOf(1); obj.a = list[idx]; }
+  aEl.value = idx; $(`#${prefix}H`).value = obj.h; $(`#${prefix}K`).value = obj.k;
+  $(`#${prefix}Ao`).textContent = n(obj.a); $(`#${prefix}Ho`).textContent = n(obj.h); $(`#${prefix}Ko`).textContent = n(obj.k);
+}
+function famButtons(container, obj, onChange){
+  container.innerHTML = FAMS.map(f => `<button data-fam="${f.id}" aria-pressed="${f.id===obj.fam}">${f.label}</button>`).join('');
+  container.onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    obj.fam = b.dataset.fam;
+    container.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    onChange();
+  };
+}
+function bindSliders(prefix, obj, onChange){
+  ['A','H','K'].forEach(key => {
+    $(`#${prefix}${key}`).addEventListener('input', e => {
+      const before = famGraph(obj.fam, obj.a, obj.h, obj.k);
+      const v = +e.target.value;
+      if (key === 'A') obj.a = aList(obj.fam)[v]; else obj[key.toLowerCase()] = v;
+      $(`#${prefix}${key}o`).textContent = n(key === 'A' ? obj.a : obj[key.toLowerCase()]);
+      onChange(key.toLowerCase(), before);
+    });
+  });
+}
+function labUpdate(slider, before){
+  const g = labGraph();
+  $('#labEq').innerHTML = eqHTML(LAB.fam, LAB.a, LAB.h, LAB.k);
+  $('#labD').innerHTML = fmtIneq(g.D,'x'); $('#labDi').innerHTML = fmtInt(g.D);
+  $('#labR').innerHTML = fmtIneq(g.R,'y'); $('#labRi').innerHTML = fmtInt(g.R);
+  if (slider && before){
+    LAB.tried[LAB.fam].add(slider);
+    if (!eqSet(before.D, g.D)) LAB.disc[LAB.fam].D.add(slider);
+    if (!eqSet(before.R, g.R)) LAB.disc[LAB.fam].R.add(slider);
+    if (FAMS.every(f => LAB.tried[f.id].size === 3)) award('lab');
+  }
+  renderDisc();
+  LAB.g = g; draw();
+}
+function renderDisc(){
+  const chip = (fam, which, s) => {
+    const cls = LAB.disc[fam][which].has(s) ? (which === 'D' ? 'yd' : 'yr') : LAB.tried[fam].has(s) ? 'no' : '';
+    return `<span class="chip ${cls}">${s}</span>`;
+  };
+  $('#discBody').innerHTML = FAMS.map(f => `<tr class="${f.id===LAB.fam?'cur':''}"><td>${f.label}</td><td>${['a','h','k'].map(s=>chip(f.id,'D',s)).join('')}</td><td>${['a','h','k'].map(s=>chip(f.id,'R',s)).join('')}</td></tr>`).join('');
+}
+function drawLab(){
+  const g = LAB.g;
+  drawBase(); drawGrid();
+  fillBand('D', spans('D', v => inS(v, g.D) ? 1 : null), C.dom, .07);
+  fillBand('R', spans('R', v => inS(v, g.R) ? 1 : null), C.ran, .07);
+  drawCurve(g); drawStrips(false);
+  laneSet('D', G.laneAD, g.D, C.dom, {w:7});
+  laneSet('R', G.laneAR, g.R, C.ran, {w:7});
+}
+
+/* ================= REVERSE ================= */
+const TARGETS = [
+  {D:ALL(), R:S(2,true,INF,false), ways:2},
+  {D:S(3,true,INF,false), R:S(-INF,false,-2,true), ways:1},
+  {D:S(-INF,false,INF,false,[-4]), R:S(-INF,false,INF,false,[1]), ways:1},
+  {D:ALL(), R:S(-INF,false,5,true), ways:2},
+  {D:S(-5,true,INF,false), R:S(0,true,INF,false), ways:1},
+  {D:ALL(), R:ALL(), ways:2},
+  {D:ALL(), R:S(3,true,3,true), ways:1},
+  {D:S(-INF,false,INF,false,[2]), R:S(-INF,false,INF,false,[-3]), ways:1},
+  {D:S(-2,true,INF,false), R:S(-INF,false,4,true), ways:1},
+];
+const RV = { i:0, fam:'linear', a:1, h:0, k:0, solved:{}, fails:0 };
+TARGETS.forEach((_, i) => RV.solved[i] = new Set());
+function rvGraph(){ return famGraph(RV.fam, RV.a, RV.h, RV.k); }
+function rvRender(){
+  const t = TARGETS[RV.i];
+  $('#rvNum').textContent = `Target ${RV.i+1} of ${TARGETS.length}`;
+  const got = RV.solved[RV.i].size;
+  $('#rvMulti').textContent = t.ways > 1 ? `Bonus: ${Math.min(got, t.ways)} of ${t.ways} families found` : (got ? 'Solved' : '');
+  $('#rvD').innerHTML = `Domain: ${fmtIneq(t.D,'x')} &nbsp;<span style="color:var(--muted)">${fmtInt(t.D)}</span>`;
+  $('#rvR').innerHTML = `Range: ${fmtIneq(t.R,'y')} &nbsp;<span style="color:var(--muted)">${fmtInt(t.R)}</span>`;
+  $('#rvStars').innerHTML = TARGETS.map((_, i) => `<button class="${RV.solved[i].size?'solved':''} ${i===RV.i?'cur':''}" data-i="${i}" aria-label="Target ${i+1}">${i+1}</button>`).join('');
+  $('#rvEq').innerHTML = eqHTML(RV.fam, RV.a, RV.h, RV.k);
+  RV.g = rvGraph(); draw();
+}
+function hintFor(t){
+  if (liveHoles(t.D).length) return 'Hint: a gap in the domain and a gap in the range. Which family has asymptotes?';
+  if (Number.isFinite(t.D.lo) || Number.isFinite(t.D.hi)) return 'Hint: the domain starts at a number and only goes one way. Which family has a starting point?';
+  if (Number.isFinite(t.R.lo) && t.R.lo === t.R.hi) return 'Hint: every point on the graph has the same height. What kind of line does that?';
+  if (Number.isFinite(t.R.lo) || Number.isFinite(t.R.hi)) return 'Hint: the domain is everything, but the range stops at one end. Which families have a vertex? Which slider flips them?';
+  return 'Hint: everything in both directions. Which families keep going up and down forever?';
+}
+function rvCheck(){
+  const t = TARGETS[RV.i], g = rvGraph();
+  const okD = eqSet(g.D, t.D), okR = eqSet(g.R, t.R), fb = $('#rvFeedback');
+  if (okD && okR){
+    const fresh = !RV.solved[RV.i].has(RV.fam), first = RV.solved[RV.i].size === 0;
+    RV.solved[RV.i].add(RV.fam); RV.fails = 0;
+    let msg = `<b style="color:var(--ok)">Match!</b> Your ${FAMS.find(f=>f.id===RV.fam).label.toLowerCase()} graph has exactly this domain and range.`;
+    if (first){ addXP(40); msg += ' +40 XP'; }
+    else if (fresh){ addXP(25); msg += ' A second family works too: +25 XP'; award('two'); }
+    else msg += ' (Already found this one.)';
+    if (t.ways > 1 && RV.solved[RV.i].size < t.ways) msg += `<div style="margin-top:6px">Bonus: another family can also hit this target. Can you find it?</div>`;
+    fb.innerHTML = msg;
+    if (Object.values(RV.solved).filter(s => s.size).length >= 5) award('rev5');
+  } else {
+    RV.fails++;
+    const line = (lab, ok, mine, v) => ok
+      ? `<li><b style="color:var(--ok)">${lab} matches.</b></li>`
+      : `<li><b style="color:var(--bad)">${lab} doesn’t match yet.</b> Yours is <span class="m">${fmtIneq(mine, v)}</span>.</li>`;
+    fb.innerHTML = `<ul style="margin:0;padding-left:18px">${line('Domain', okD, g.D, 'x')}${line('Range', okR, g.R, 'y')}</ul>${RV.fails >= 2 ? `<div style="margin-top:8px">${hintFor(t)}</div>` : ''}`;
+  }
+  rvRender();
+}
+function drawReverse(){
+  const t = TARGETS[RV.i], g = RV.g;
+  drawBase(); drawGrid();
+  fillBand('D', spans('D', v => inS(v, t.D) ? 1 : null), C.zone, .10);
+  fillBand('R', spans('R', v => inS(v, t.R) ? 1 : null), C.zone, .10);
+  drawCurve(g); drawStrips(true);
+  laneSet('D', G.laneAD, g.D, C.dom, {w:7});
+  laneSet('R', G.laneAR, g.R, C.ran, {w:7});
+  const tc = C.ink;
+  laneSet('D', G.laneBD, t.D, tc, {w:4, dash:true, r:5.5});
+  laneSet('R', G.laneBR, t.R, tc, {w:4, dash:true, r:5.5});
+}
+
+
+/* ================= ERROR DETECTIVE ================= */
+const NAMES = ['Nina','Mia','Hailey'];
+const MIS = {
+  swap:    {label:'Swapped the domain and the range', explain:'Domain describes the <i>x</i>-values (left to right). Range describes the <i>y</i>-values (bottom to top). These two got switched.'},
+  bracket: {label:'Mixed up an open and a closed endpoint', explain:'A solid dot means the value is included (≤, ≥, or a square bracket). An open circle means it isn’t (<, >, or a parenthesis).'},
+  window:  {label:'Treated the edge of the screen as the end of the graph', explain:'An arrow means the graph keeps going past the edge of the window. That end is ∞ (or −∞), not ±10.'},
+  forever: {label:'Said the graph goes on forever when it actually stops', explain:'The graph has a lowest or highest point (a vertex, a starting point, or an endpoint), so the range stops there.'},
+  hole:    {label:'Missed a gap in the graph', explain:'An open circle or an asymptote means one value gets skipped. It has to be left out with ≠ or a ∪.'},
+  parent:  {label:'Used the parent function’s domain and ignored the shift', explain:'The parent graph <span class="m">√<span class="rad"><i>x</i></span></span> starts at <i>x</i> = 0, but this graph was shifted, so its starting point moved too.'},
+  xy:      {label:'Used the x-coordinate of the turning point for the range', explain:'The range is about heights, so it uses the <i>y</i>-coordinate of the vertex or starting point, not the <i>x</i>-coordinate.'},
+};
+const cloneS = s => S(s.lo, s.loC, s.hi, s.hiC, s.holes);
+const isPoint = s => Number.isFinite(s.lo) && s.lo === s.hi;
+const shuffle = arr => { const a = [...arr]; for (let i = a.length-1; i > 0; i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; };
+const ED = { g:null, D:null, R:null, type:'none', wrong:'none', name:'', step:1, first:true, reveal:false, picked:[], choices:[], cases:0, perfect:0 };
+function edMake(){
+  for (let tries = 0; tries < 60; tries++){
+    const g = randGraph(4, ED.g && ED.g.kind);
+    const D = cloneS(g.D), R = cloneS(g.R), opts = [];
+    if (!eqSet(g.D, g.R)) opts.push('swap');
+    const fin = [], inf = [];
+    [['D',D],['R',R]].forEach(([o,s]) => {
+      if (!isPoint(s)){ if (Number.isFinite(s.lo)) fin.push([o,'lo']); if (Number.isFinite(s.hi)) fin.push([o,'hi']); }
+      if (!Number.isFinite(s.lo)) inf.push([o,'lo']); if (!Number.isFinite(s.hi)) inf.push([o,'hi']);
+    });
+    if (fin.length) opts.push('bracket');
+    if (inf.length) opts.push('window');
+    if (!isPoint(R) && (Number.isFinite(R.lo) || Number.isFinite(R.hi))) opts.push('forever');
+    if (liveHoles(D).length || liveHoles(R).length) opts.push('hole');
+    if (g.kind === 'sqrt' && g.vx !== 0) opts.push('parent');
+    if (g.vx !== undefined && g.vx !== g.vy) opts.push('xy');
+    if (!opts.length) continue;
+    const type = Math.random() < .15 ? 'none' : pick(opts);
+    let aD = D, aR = R, wrong = 'none';
+    if (type === 'swap'){ aD = cloneS(g.R); aR = cloneS(g.D); wrong = 'both'; }
+    else if (type === 'bracket'){ const [o,k] = pick(fin), s = o === 'D' ? aD : aR; s[k+'C'] = !s[k+'C']; wrong = o; }
+    else if (type === 'window'){ const [o,k] = pick(inf), s = o === 'D' ? aD : aR; s[k] = k === 'lo' ? -10 : 10; s[k+'C'] = true; wrong = o; }
+    else if (type === 'forever'){ const ks = ['lo','hi'].filter(k => Number.isFinite(R[k])), k = pick(ks); aR[k] = k === 'lo' ? -INF : INF; aR[k+'C'] = false; wrong = 'R'; }
+    else if (type === 'hole'){ const useD = liveHoles(D).length && (!liveHoles(R).length || coin()); if (useD){ aD.holes = []; wrong = 'D'; } else { aR.holes = []; wrong = 'R'; } }
+    else if (type === 'parent'){ aD = S(0,true,INF,false); wrong = 'D'; }
+    else if (type === 'xy'){ const k = Number.isFinite(R.lo) ? 'lo' : 'hi'; aR[k] = g.vx; wrong = 'R'; }
+    Object.assign(ED, { g, D:aD, R:aR, type, wrong, name:pick(NAMES), step:1, first:true, reveal:false, picked:[], choices:[] });
+    if (type !== 'none'){
+      const others = shuffle(Object.keys(MIS).filter(k => k !== type)).slice(0,3);
+      ED.choices = shuffle([type, ...others]);
+    }
+    return;
+  }
+}
+const partLabel = p => ({D:'The domain', R:'The range', both:'Both of them', none:'Nothing. It’s correct!'})[p];
+function edRender(){
+  const init = ED.name[0];
+  $('#edCase').innerHTML = `<div class="avatar">${init}</div><div><div class="who">${ED.name}’s answer</div>
+    <div class="m">Domain: ${fmtIneq(ED.D,'x')} &nbsp;<span style="color:var(--muted)">${fmtInt(ED.D)}</span></div>
+    <div class="m">Range: ${fmtIneq(ED.R,'y')} &nbsp;<span style="color:var(--muted)">${fmtInt(ED.R)}</span></div></div>`;
+  const body = $('#edBody');
+  if (ED.step === 1){
+    body.innerHTML = `<p class="qstep">Step 1 of 2</p><p class="q">Which part of ${ED.name}’s answer is wrong?</p>
+      <div class="choices two">${['D','R','both','none'].map(p => `<button class="choice ${ED.picked.includes(p) ? 'wrong' : ''}" data-part="${p}">${partLabel(p)}</button>`).join('')}</div>
+      ${ED.fb || ''}`;
+  } else if (ED.step === 2){
+    body.innerHTML = `<p class="qstep">Step 2 of 2</p><p class="q">You found it: ${ED.wrong === 'both' ? 'both parts are' : (ED.wrong === 'D' ? 'the domain is' : 'the range is')} wrong. What went wrong?</p>
+      <div class="choices">${ED.choices.map(k => `<button class="choice ${ED.picked.includes(k) ? 'wrong' : ''}" data-mis="${k}">${MIS[k].label}</button>`).join('')}</div>
+      ${ED.fb || ''}`;
+  } else {
+    const head = ED.type === 'none'
+      ? `<div class="fb good"><b>Case closed.</b> ${ED.name} got it exactly right. Checking work that turns out to be correct is part of the job too.</div>`
+      : `<div class="fb good"><b>Case closed: ${MIS[ED.type].label.toLowerCase()}.</b><br>${MIS[ED.type].explain}</div>`;
+    body.innerHTML = `${head}
+      <div class="summary"><div><b>Correct answer</b></div>
+        <div>Domain: <span class="m">${fmtIneq(ED.g.D,'x')}</span> &nbsp;or&nbsp; <span class="m">${fmtInt(ED.g.D)}</span></div>
+        <div>Range: <span class="m">${fmtIneq(ED.g.R,'y')}</span> &nbsp;or&nbsp; <span class="m">${fmtInt(ED.g.R)}</span></div></div>
+      <button class="btn primary big" id="edNext">Next case</button>`;
+  }
+  $('#edStats').textContent = ED.cases ? `Cases closed: ${ED.cases}. Solved on the first try: ${ED.perfect}.` : '';
+  draw();
+}
+$('#edBody').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'edNext'){ edMake(); ED.fb = ''; edRender(); return; }
+  if (ED.step === 1 && b.dataset.part){
+    const p = b.dataset.part;
+    if (p === ED.wrong){
+      if (ED.first) addXP(15);
+      ED.picked = []; ED.fb = '';
+      if (p === 'none'){ ED.step = 3; ED.reveal = true; edFinish(); }
+      else { ED.step = 2; ED.stepFirst = true; }
+    } else {
+      ED.first = false; ED.picked.push(p);
+      ED.fb = `<div class="fb bad">${p === 'none' ? 'Look again. Something in this answer doesn’t match the graph.' : p === 'both' ? 'Not both. One part of the answer actually matches the graph.' : `Check that again. Compare ${p === 'D' ? 'the domain to the bottom shadow of the graph' : 'the range to the left shadow of the graph'}.`}</div>`;
+    }
+    edRender();
+  } else if (ED.step === 2 && b.dataset.mis){
+    const k = b.dataset.mis;
+    if (k === ED.type){ if (ED.stepFirst) addXP(15); ED.step = 3; ED.reveal = true; ED.fb = ''; edFinish(); }
+    else { ED.stepFirst = false; ED.first = false; ED.picked.push(k); ED.fb = `<div class="fb bad">That’s not quite the mistake ${ED.name} made. Look closely at where the answer and the graph disagree.</div>`; }
+    edRender();
+  }
+});
+function edFinish(){
+  ED.cases++;
+  if (ED.first && ED.stepFirst !== false) ED.perfect++;
+  if (ED.cases >= 5) award('detective');
+}
+function drawDetective(){
+  const g = ED.g;
+  drawBase(); drawGrid();
+  if (ED.reveal){
+    ['ok','bad','miss'].forEach(k => {
+      fillBand('D', spans('D', v => catOf(v, g.D, ED.D) === k ? 1 : null), catCol(k), .10);
+      fillBand('R', spans('R', v => catOf(v, g.R, ED.R) === k ? 1 : null), catCol(k), .10);
+    });
+  }
+  drawCurve(g); drawStrips(true);
+  if (ED.reveal){
+    laneSet('D', G.laneAD, g.D, C.shadow, {w:7});
+    laneSet('R', G.laneAR, g.R, C.shadow, {w:7});
+    fillLane('D', G.laneBD, spans('D', v => catOf(v, g.D, ED.D)), catCol, 8);
+    fillLane('R', G.laneBR, spans('R', v => catOf(v, g.R, ED.R)), catCol, 8);
+    laneSet('D', G.laneBD, ED.D, C.ink, {w:0.01, r:6});
+    laneSet('R', G.laneBR, ED.R, C.ink, {w:0.01, r:6});
+  } else {
+    laneSet('D', G.laneBD, ED.D, C.ink, {w:5, r:6.5});
+    laneSet('R', G.laneBR, ED.R, C.ink, {w:5, r:6.5});
+  }
+}
+
+/* ================= MEMORY MATCH ================= */
+const MM = { tier:4, cards:[], sel:null, matched:new Set(), misses:0, t0:0, lock:false, done:false, started:false, timer:null, best:{} };
+const CARD_BACK = '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 26 Q 14 4 22 17 T 35 10" fill="none" stroke="#FFCB05" stroke-width="3.5" stroke-linecap="round"/><rect x="5" y="31" width="30" height="4" rx="2" fill="#FFCB05"/></svg>';
+function renderMini(c, g){
+  const size = c.clientWidth || 140, d = window.devicePixelRatio || 1;
+  c.width = Math.round(size*d); c.height = Math.round(size*d);
+  const sv = { ctx, W, H, dpr, G:{...G} };
+  ctx = c.getContext('2d'); W = size; H = size; dpr = d;
+  Object.assign(G, { x0:0, y0:0, P:size, mini:true });
+  drawBase(); drawGrid(); drawCurve(g);
+  ctx = sv.ctx; W = sv.W; H = sv.H; dpr = sv.dpr;
+  for (const k in G) delete G[k];
+  Object.assign(G, sv.G);
+}
+const capFirst = t => t.charAt(0).toUpperCase() + t.slice(1);
+const plain = h => h.replace(/<[^>]+>/g, '');
+function mmText(g){
+  const f = (s, v) => capFirst(fmtIneq(s, v));
+  return `<span class="dr"><span class="k d">Domain</span><span class="m">${f(g.D,'x')}</span><span class="k r">Range</span><span class="m">${f(g.R,'y')}</span></span>`;
+}
+function mmNew(){
+  const graphs = [], keys = new Set(); let guard = 0;
+  while (graphs.length < 6 && guard++ < 300){
+    const g = randGraph(MM.tier);
+    const key = fmtInt(g.D) + '|' + fmtInt(g.R);
+    if (keys.has(key)) continue;
+    keys.add(key); graphs.push(g);
+  }
+  clearInterval(MM.timer);
+  MM.cards = shuffle(graphs.flatMap((g,i) => [{pair:i, type:'graph', g}, {pair:i, type:'text', g}]));
+  Object.assign(MM, { sel:null, matched:new Set(), misses:0, t0:0, tEnd:0, done:false, started:false, lock:false });
+  $('#mmDone').innerHTML = '';
+  $('#memGrid').innerHTML = MM.cards.map((c,i) => `<button class="card" data-i="${i}" aria-label="Card ${i+1}, face down" tabindex="-1"><span class="inner"><span class="back">${CARD_BACK}</span><span class="front">${c.type === 'graph' ? '<canvas class="mini"></canvas>' : mmText(c.g)}</span></span></button>`).join('')
+    + `<button class="btn primary mm-start" id="mmStart">Start the clock</button>`;
+  requestAnimationFrame(mmRenderMinis);
+  mmStats();
+}
+function mmStart(){
+  if (MM.started) return;
+  MM.started = true; $('#mmStart')?.remove();
+  $$('#memGrid .card').forEach(b => {
+    const c = MM.cards[+b.dataset.i];
+    b.classList.add('up'); b.removeAttribute('tabindex');
+    b.setAttribute('aria-label', c.type === 'graph' ? `Card ${+b.dataset.i+1}: a graph` : `Card ${+b.dataset.i+1}: domain ${plain(fmtIneq(c.g.D,'x'))}, range ${plain(fmtIneq(c.g.R,'y'))}`);
+  });
+  MM.t0 = performance.now() + (reduceMotion ? 0 : 450);   // clock starts once the cards finish flipping
+  MM.timer = setInterval(mmStats, 100);
+}
+function mmRenderMinis(){
+  $$('#memGrid .card').forEach(b => { const c = MM.cards[+b.dataset.i]; if (c.type === 'graph') renderMini(b.querySelector('canvas'), c.g); });
+}
+const fmtClock = ms => { const t = Math.max(0, ms)/1000, m = Math.floor(t/60), sec = t - m*60; return `${m}:${sec.toFixed(1).padStart(4,'0')}`; };
+function mmElapsed(){ return MM.t0 ? Math.max(0, (MM.done ? MM.tEnd : performance.now()) - MM.t0) + MM.misses*3000 : 0; }
+function mmStats(){
+  $('#mmPairs').textContent = `${MM.matched.size/2} / ${MM.cards.length/2 || 6}`;
+  $('#mmMoves').textContent = MM.misses;
+  $('#mmTime').textContent = fmtClock(mmElapsed());
+  const best = MM.best[MM.tier];
+  $('#mmBest').textContent = best ? `Your best on this level: ${fmtClock(best)}` : '';
+}
+$('#memGrid').addEventListener('click', e => {
+  if (e.target.closest('#mmStart')){ mmStart(); return; }
+  const b = e.target.closest('.card'); if (!b || !MM.started || MM.done || MM.lock) return;
+  const i = +b.dataset.i;
+  if (MM.matched.has(i)) return;
+  if (MM.sel === null){ MM.sel = i; b.classList.add('sel'); return; }
+  if (MM.sel === i){ MM.sel = null; b.classList.remove('sel'); return; }
+  const a = MM.sel, ba = $(`#memGrid .card[data-i="${a}"]`);
+  MM.sel = null;
+  if (MM.cards[a].pair === MM.cards[i].pair && a !== i){
+    [ba, b].forEach(x => { x.classList.remove('sel'); x.classList.add('got'); });
+    MM.matched.add(a); MM.matched.add(i);
+    if (MM.matched.size === MM.cards.length) mmFinish();
+  } else {
+    MM.misses++; MM.lock = true;
+    [ba, b].forEach(x => { x.classList.remove('sel'); x.classList.add('nope'); });
+    setTimeout(() => { [ba, b].forEach(x => x.classList.remove('nope')); MM.lock = false; }, 420);
+  }
+  mmStats();
+});
+function mmFinish(){
+  MM.done = true; MM.tEnd = performance.now(); clearInterval(MM.timer);
+  const total = mmElapsed(), secs = total/1000;
+  const prev = MM.best[MM.tier], isBest = !prev || total < prev;
+  if (isBest) MM.best[MM.tier] = total;
+  const bonus = secs <= 30 ? 50 : secs <= 45 ? 25 : 0;
+  addXP(50 + bonus); award('memory');
+  $('#mmDone').innerHTML = `<div class="summary"><b>All six pairs in ${fmtClock(total)}${MM.misses ? ` (includes ${MM.misses*3} s of miss penalties)` : ''}.</b>
+    ${isBest && prev ? ' New personal best!' : ''} +${50+bonus} XP${bonus ? ' with a speed bonus' : ''}. Deal a new board and try to beat it.</div>`;
+  mmStats();
+}
+$('#mmTier').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; MM.tier = +b.dataset.tier; $$('#mmTier button').forEach(x => x.setAttribute('aria-pressed', x === b)); mmNew(); });
+$('#mmNew').addEventListener('click', () => { clearInterval(MM.timer); mmNew(); });
+
+/* ================= GAME DAY ================= */
+const n3 = v => { const r = Math.round(v*10000)/10000; return (r < 0 ? '−' : '') + String(Math.abs(r)); };
+const n2 = v => { const r = Math.round(v*100)/100; return (r < 0 ? '−' : '') + String(Math.abs(r)); };
+const GD_SC = [
+  { title:'Landon’s set', who:'Landon', view:'along',
+    story:'Landon stands two-thirds of the way down the net and sets the ball from 7 feet above the floor. It arcs toward the left antenna, where Daniel jumps just inside the antenna and spikes it at 11 feet, exactly 1 second after the set.',
+    a:-16, b:20, c:7, tEnd:1, endWord:'is spiked by Daniel',
+    along:{ start:19.67, land:2.0, hitter:1.3 },
+    whyD:'The clock starts when the ball leaves Landon’s hands (t = 0) and the set ends when Daniel spikes it (t = 1). After the spike, this formula no longer describes the ball.',
+    whyR:'The ball never gets below 7 feet in this story: it leaves Landon’s hands at 7 feet, rises to its peak, and Daniel hits it at 11 feet on the way down. The floor (0 feet) is not part of the range here.' },
+  { title:'Gavin’s float serve', who:'Gavin', view:'side',
+    story:'Gavin (6 feet tall) stands just behind the end line and contacts a float serve out in front of him, 6 feet above the floor. It clears the 8-foot net and lands in the back corner 1.5 seconds later.',
+    a:-16, b:20, c:6, tEnd:1.5, endWord:'lands in the back corner',
+    side:{ xL:-38, xR:32, start:-30.2, end:27, ends:[-29.5, 29.5],
+      people:[{name:'Gavin', x:-31.6, pose:'serve'}] },
+    whyD:'The serve is in the air from contact (t = 0) until it lands (t = 1.5).',
+    whyR:'The serve starts at 6 feet, rises to its peak, then falls all the way to the floor (0 feet).' },
+  { title:'Ryker’s tip over the block', who:'Ryker', view:'side',
+    story:'Ryker (6 feet tall) sees the block coming and tips the ball from 7 feet above the floor. It floats just over the blocker’s hands, peaking right around 10 feet, and a diving defender digs it 2.5 feet off the floor at 1.125 seconds.',
+    a:-16, b:14, c:7, tEnd:1.125, endWord:'is dug by the defender',
+    side:{ xL:-9, xR:9, start:-1.0, end:4.6, ends:[],
+      people:[{name:'Ryker', x:-1.8, pose:'tip'}, {name:'Blocker', x:1.0, pose:'block'}, {name:'Defender', x:5.5, pose:'dig'}] },
+    whyD:'The tip starts at t = 0 and the play ends when the defender digs it at t = 1.125. After the dig, this formula no longer describes the ball.',
+    whyR:'The ball starts at 7 feet, rises to its peak, and the defender digs it at 2.5 feet before it reaches the floor. So the lowest height in the story is 2.5, not 0.' },
+];
+GD_SC.forEach(sc => {
+  sc.f = t => sc.a*t*t + sc.b*t + sc.c;
+  sc.pt = -sc.b/(2*sc.a); sc.ph = sc.f(sc.pt);
+  sc.hEnd = Math.round(sc.f(sc.tEnd)*1000)/1000;
+  sc.hMin = Math.min(sc.c, sc.hEnd);
+  sc.tmin = -0.25; sc.tmax = sc.tEnd + 0.25;
+  sc.hmin = -4; sc.hmax = Math.ceil((sc.ph + 1.5)/2)*2;
+});
+const GD = { i:0, t:0, step:0, first:true, picked:[], done:new Set(), playing:false, down:false, geo:{} };
+function gdLayout(){
+  const small = W < 460;
+  const g = GD.geo;
+  g.courtY = 8; g.courtH = small ? 130 : 175;
+  g.x0 = small ? 60 : 72; g.padR = small ? 14 : 24;
+  g.Pw = W - g.x0 - g.padR;
+  g.y0 = g.courtY + g.courtH + 26;
+  g.Ph = Math.round(Math.min(g.Pw*.62, 440));
+  g.laneD = g.y0 + g.Ph + 18; g.labD = g.y0 + g.Ph + 36; g.titD = g.y0 + g.Ph + 56;
+  g.laneR = g.x0 - 16; g.labR = g.x0 - 34;
+  H = g.titD + 12;
+  G.P = G.P || 1;
+}
+const sc = () => GD_SC[GD.i];
+const TX = t => GD.geo.x0 + (t - sc().tmin)/(sc().tmax - sc().tmin)*GD.geo.Pw;
+const HY = h => GD.geo.y0 + (sc().hmax - h)/(sc().hmax - sc().hmin)*GD.geo.Ph;
+const invT = px => sc().tmin + (px - GD.geo.x0)/GD.geo.Pw*(sc().tmax - sc().tmin);
+const fy = v => V(v);
+function gdQuestions(){
+  const s = sc(), pk = n3(s.ph), tE = n3(s.tEnd);
+  const rangeWrong = s.hMin === 0 ? `${n3(s.c)} ≤ ${fy('h')} ≤ ${pk}` : `0 ≤ ${fy('h')} ≤ ${pk}`;
+  return [
+    { q:`Forget the story for a second. As a plain math function, what is the domain of ${s.eqHTML}?`,
+      opts:[{h:'all real numbers', ok:true}, {h:`0 ≤ ${fy('t')} ≤ ${tE}`}, {h:`${fy('t')} ≥ 0`}, {h:`${fy('h')} ≥ 0`}],
+      why:'A quadratic accepts any input, so the formula’s domain is all real numbers. That’s what the dashed parts of the graph show: the formula keeps going even when the story doesn’t.' },
+    { q:`Now think about the play. Which values of ${fy('t')} actually make sense in the story?`,
+      opts:[{h:`0 ≤ ${fy('t')} ≤ ${tE}`, ok:true}, {h:`${fy('t')} ≥ 0`}, {h:'all real numbers'}, {h:`0 ≤ ${fy('t')} ≤ ${pk}`}],
+      why:s.whyD },
+    { q:`What is the range in the story? Use the slider to find the highest point.`,
+      opts:[{h:`${n3(s.hMin)} ≤ ${fy('h')} ≤ ${pk}`, ok:true}, {h:rangeWrong}, {h:`${fy('h')} ≤ ${pk}`}, {h:`0 ≤ ${fy('h')} ≤ ${tE}`}],
+      why:`${s.whyR} The highest point is ${pk} feet at ${fy('t')} = ${n3(s.pt)} seconds.` },
+  ];
+}
+function gdLoad(i){
+  GD.i = i; GD.t = 0; GD.step = 0; GD.first = true; GD.picked = []; GD.fb = ''; GD.playing = false;
+  const s = sc();
+  s.eqHTML = `<span class="m">${fy('h')}(${fy('t')}) = −16${fy('t')}²&thinsp;+ ${s.b}${fy('t')}&thinsp;+ ${s.c}</span>`;
+  GD.qs = gdQuestions().map(q => ({...q, opts:shuffle(q.opts)}));
+  $('#gdT').max = s.tEnd; $('#gdT').value = 0;
+  $('#gdSc').innerHTML = GD_SC.map((x,j) => `<button data-i="${j}" aria-pressed="${j===i}">${GD.done.has(j) ? '✓ ' : ''}${x.title}</button>`).join('');
+  $('#gdTitle').textContent = s.title;
+  $('#gdStory').textContent = s.story;
+  $('#gdEq').innerHTML = s.eqHTML.replace('<span class="m">','').replace(/<\/span>$/,'');
+  gdRead(); gdRenderQ(); draw();
+}
+function gdRead(){
+  const s = sc(), t = GD.t, h = s.f(t);
+  let msg = `At <span class="m">${fy('t')} = ${n3(t)}</span> seconds, the ball is <b>${n2(h)} feet</b> above the floor.`;
+  if (t === 0) msg += ' This is the moment of contact.';
+  else if (Math.abs(t - s.tEnd) < 1e-9) msg += ` This is when the ball ${s.endWord}.`;
+  else if (Math.abs(t - s.pt) < 1e-9) msg += ' This is the highest point.';
+  $('#gdRead').innerHTML = msg;
+  $('#gdTo').textContent = n3(t);
+}
+function gdProg(step, note){
+  const title = step >= 3 ? 'All 3 questions done' : `Question ${step+1} of 3`;
+  return `<div class="qprog" role="status"><div class="qprog-top"><b>${title}</b><span>${note}</span></div><div class="qdots">${[0,1,2].map(i => `<i class="${i < step ? 'done' : i === step ? 'cur' : ''}"></i>`).join('')}</div></div>`;
+}
+function gdRenderQ(){
+  const s = sc();
+  if (GD.step >= 3){
+    $('#gdQ').innerHTML = `${gdProg(3, 'Play complete')}<div class="summary"><div><b>Math vs. the story</b></div>
+      <div>Domain of the formula: all real numbers</div>
+      <div>Domain in the story: <span class="m">0 ≤ ${fy('t')} ≤ ${n3(s.tEnd)}</span> seconds</div>
+      <div>Range in the story: <span class="m">${n3(s.hMin)} ≤ ${fy('h')} ≤ ${n3(s.ph)}</span> feet</div></div>
+      ${GD.fb || ''}
+      <button class="btn primary big" id="gdNext">Next play</button>`;
+    return;
+  }
+  const q = GD.qs[GD.step];
+  const left = 2 - GD.step;
+  $('#gdQ').innerHTML = `${gdProg(GD.step, left ? `${left} more after this one` : 'Last question!')}<p class="q">${q.q}</p>
+    <div class="choices">${q.opts.map((o,j) => `<button class="choice ${GD.picked.includes(j) ? 'wrong' : ''}" data-j="${j}"><span class="m">${o.h}</span></button>`).join('')}</div>${GD.fb || ''}`;
+}
+$('#gdQ').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'gdNext'){ gdLoad((GD.i + 1) % GD_SC.length); return; }
+  const q = GD.qs[GD.step], j = +b.dataset.j;
+  if (q.opts[j].ok){
+    if (GD.first) addXP(15);
+    GD.fb = `<div class="fb good"><b>Yes.</b> ${q.why}</div>`;
+    GD.step++; GD.first = true; GD.picked = [];
+    if (GD.step === 3){
+      if (!GD.done.has(GD.i)){ GD.done.add(GD.i); addXP(20); }
+      if (GD.done.size === GD_SC.length) award('gameday');
+      $$('#gdSc button').forEach((x,k) => x.textContent = (GD.done.has(k) ? '✓ ' : '') + GD_SC[k].title);
+    }
+  } else {
+    GD.first = false; GD.picked.push(j);
+    GD.fb = `<div class="fb bad">Not quite. ${GD.step === 0 ? 'Think about the formula only: could you plug in any number for t?' : GD.step === 1 ? 'When does the play start, and when does it end? Try pressing Play.' : 'Drag the slider through the whole play. What’s the lowest and highest the ball gets?'}</div>`;
+  }
+  gdRenderQ(); draw();
+});
+function gdPlay(speed){
+  if (GD.playing) return;
+  GD.playing = true;
+  const s = sc(), t0 = performance.now();
+  const step = now => {
+    if (!GD.playing || st.mode !== 'gameday'){ GD.playing = false; return; }
+    const t = Math.min(s.tEnd, (now - t0)/1000/speed);
+    GD.t = Math.round(t*1000)/1000; if (t >= s.tEnd) GD.t = s.tEnd;
+    $('#gdT').value = GD.t; gdRead(); draw();
+    if (t < s.tEnd) requestAnimationFrame(step); else GD.playing = false;
+  };
+  requestAnimationFrame(step);
+}
+$('#gdPlay').addEventListener('click', () => { GD.playing = false; requestAnimationFrame(() => gdPlay(1)); });
+$('#gdSlow').addEventListener('click', () => { GD.playing = false; requestAnimationFrame(() => gdPlay(4)); });
+$('#gdT').addEventListener('input', e => { GD.playing = false; GD.t = +e.target.value; gdRead(); draw(); });
+$('#gdSc').addEventListener('click', e => { const b = e.target.closest('button'); if (b) gdLoad(+b.dataset.i); });
+function gdSetFromX(px){
+  const s = sc(); let t = invT(px);
+  t = Math.max(0, Math.min(s.tEnd, Math.round(t/0.025)*0.025));
+  GD.playing = false; GD.t = Math.round(t*1000)/1000; $('#gdT').value = GD.t; gdRead(); draw();
+}
+
+function courtBox(g){
+  ctx.fillStyle = C.chip; ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(g.x0, g.courtY, g.Pw, g.courtH, 10); else ctx.rect(g.x0, g.courtY, g.Pw, g.courtH);
+  ctx.fill();
+}
+function stick(xFeet, feetY, ch, cx, faceDir, handX, handY){
+  // simple player: feet at height feetY (ft), hands reaching to (handX px, handY ft)
+  ctx.strokeStyle = C.shadow; ctx.fillStyle = C.shadow; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  const x = cx(xFeet), hip = ch(feetY + 3), sh = ch(feetY + 5), head = ch(feetY + 5.7);
+  ctx.beginPath();
+  ctx.moveTo(x - 5, ch(feetY)); ctx.lineTo(x, hip); ctx.lineTo(x + 5, ch(feetY));
+  ctx.moveTo(x, hip); ctx.lineTo(x, sh);
+  ctx.moveTo(x, sh); ctx.lineTo(handX - faceDir*2, ch(handY));
+  ctx.moveTo(x, sh); ctx.lineTo(handX + faceDir*3, ch(handY) + 2);
+  ctx.stroke();
+  ctx.beginPath(); ctx.arc(x + faceDir*1.5, head, 5, 0, Math.PI*2); ctx.fill();
+}
+function drawBall(x, y){
+  ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI*2); ctx.fillStyle = '#FFCB05'; ctx.fill(); ctx.strokeStyle = '#00274C'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x - 7, y); ctx.quadraticCurveTo(x, y - 4, x + 7, y); ctx.moveTo(x, y - 7); ctx.quadraticCurveTo(x - 3, y, x, y + 7); ctx.stroke();
+}
+const NET_TOP = 8, NET_BOT = 8 - 3.28, ANT_TOP = 11;
+function ruler(g, ch, FT, cb){
+  const rx = g.x0 + 30;
+  ctx.strokeStyle = C.axis; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(rx, cb); ctx.lineTo(rx, ch(FT)); ctx.stroke();
+  ctx.fillStyle = C.muted; ctx.font = '500 9.5px Lexend, system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let h = 0; h <= FT; h++){
+    ctx.beginPath(); ctx.moveTo(rx - (h % 2 ? 2 : 4), ch(h)); ctx.lineTo(rx, ch(h)); ctx.stroke();
+    if (h % 2 === 0) ctx.fillText(h + (h === FT - FT % 2 ? ' ft' : ''), rx - 6, ch(h));
+  }
+}
+function guide(g, ch, h, label, x1){
+  ctx.save(); ctx.setLineDash([4,4]); ctx.globalAlpha = .55; ctx.strokeStyle = C.muted; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(g.x0 + 30, ch(h)); ctx.lineTo(x1, ch(h)); ctx.stroke(); ctx.restore();
+  ctx.fillStyle = C.muted; ctx.font = '600 10px Lexend, system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+  ctx.fillText(label, g.x0 + 36, ch(h) - 1);
+}
+function antenna(x, ch, w, from, to){
+  // red and white stripes in 10 cm (about 4 in) bands
+  const band = 0.328; let k = 0;
+  for (let h = from; h < to - 1e-6; h += band, k++){
+    const top = Math.min(to, h + band);
+    ctx.fillStyle = k % 2 ? '#FFFFFF' : '#D7263D';
+    ctx.fillRect(x - w, ch(top), 2*w, ch(h) - ch(top) + .5);
+  }
+  ctx.strokeStyle = 'rgba(0,0,0,.4)'; ctx.lineWidth = .75; ctx.strokeRect(x - w, ch(to), 2*w, ch(from) - ch(to));
+}
+function person(px, feetFt, ch, o){
+  // a 6-ft figure. o.h1/o.h2 = hand positions [px, ft]; o.crouch for a low digging stance
+  const k = o.crouch ? 0.62 : 1, f = feetFt;
+  const knee = ch(f + 1.6*k), hip = ch(f + 3.0*k), sh = ch(f + 4.9*k), headC = ch(f + (o.crouch ? 3.4 : 5.55));
+  const r = Math.max(3.5, ch(0) - ch(0.42)), dir = o.dir || 1;
+  ctx.strokeStyle = C.shadow; ctx.fillStyle = C.shadow; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  const kneeOff = o.crouch ? 7*dir : (f > 0 ? 3*dir : 1*dir);
+  ctx.moveTo(px - 5, ch(f)); ctx.lineTo(px - 2 + kneeOff, knee); ctx.lineTo(px, hip);
+  ctx.lineTo(px + 2 + kneeOff, knee); ctx.lineTo(px + 6, ch(f));
+  const shx = px + (o.crouch ? 6*dir : 0);
+  ctx.moveTo(px, hip); ctx.lineTo(shx, sh);
+  ctx.moveTo(shx, sh); ctx.lineTo(o.h1[0], ch(o.h1[1]));
+  ctx.moveTo(shx, sh); ctx.lineTo(o.h2[0], ch(o.h2[1]));
+  ctx.stroke();
+  ctx.beginPath(); ctx.arc(shx + (o.crouch ? 3*dir : 0), headC - (o.crouch ? 0 : 0), r, 0, Math.PI*2); ctx.fill();
+}
+function heightTag(px, ch, label){
+  // dimension bracket showing a 6 ft player
+  const x = px - 12;
+  ctx.strokeStyle = C.muted; ctx.lineWidth = 1; ctx.beginPath();
+  ctx.moveTo(x, ch(0)); ctx.lineTo(x, ch(6)); ctx.moveTo(x - 3, ch(0)); ctx.lineTo(x + 3, ch(0)); ctx.moveTo(x - 3, ch(6)); ctx.lineTo(x + 3, ch(6)); ctx.stroke();
+  ctx.fillStyle = C.muted; ctx.font = '600 9.5px Lexend, system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  ctx.fillText(label, x - 4, ch(3));
+}
+function drawCourtSide(s, g){
+  courtBox(g);
+  const S2 = s.side, FT = 13;
+  const cb = g.courtY + g.courtH - 16, cH = g.courtH - 30;
+  const ch = h => cb - h/FT*cH;
+  const cx = x => g.x0 + 40 + (x - S2.xL)/(S2.xR - S2.xL)*(g.Pw - 50);
+  ruler(g, ch, FT, cb);
+  // floor, end lines, center line
+  ctx.strokeStyle = C.axis; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx(S2.xL), cb); ctx.lineTo(cx(S2.xR), cb); ctx.stroke();
+  ctx.strokeStyle = C.muted; ctx.lineWidth = 3; ctx.beginPath();
+  S2.ends.forEach(x => { ctx.moveTo(cx(x), cb - 3); ctx.lineTo(cx(x), cb + 3); });
+  ctx.stroke();
+  // guides
+  guide(g, ch, NET_TOP, 'net: 8 ft', cx(S2.xR));
+  guide(g, ch, ANT_TOP, 'antenna top: 11 ft', cx(S2.xR));
+  // net seen from the side: post, net band (bottom ~4.7 ft to 8 ft), white top tape, antenna 8 to 11 ft
+  const nx = cx(0);
+  ctx.strokeStyle = C.shadow; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(nx, cb); ctx.lineTo(nx, ch(NET_TOP)); ctx.stroke();
+  ctx.fillStyle = '#1B1B1B'; ctx.globalAlpha = .55; ctx.fillRect(nx - 2.5, ch(NET_TOP), 5, ch(NET_BOT) - ch(NET_TOP)); ctx.globalAlpha = 1;
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(nx - 3, ch(NET_TOP), 6, 3); ctx.strokeStyle = C.shadow; ctx.lineWidth = .75; ctx.strokeRect(nx - 3, ch(NET_TOP), 6, 3);
+  antenna(nx, ch, 2, NET_TOP, ANT_TOP);
+  ctx.fillStyle = C.muted; ctx.font = '500 10px Lexend, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('net', nx, cb + 3);
+  const bx = t => S2.start + (S2.end - S2.start)*t/s.tEnd;
+  const ballPx = cx(bx(GD.t)), ballFt = s.f(GD.t);
+  S2.people.forEach(p => {
+    const px = cx(p.x);
+    if (p.pose === 'serve'){
+      const contact = GD.t < 0.08;
+      person(px, 0, ch, { dir:1, h1:[cx(S2.start) - 2, contact ? 6 : 5.2], h2:[px + 9, contact ? 3.6 : 3.2] });
+      heightTag(px, ch, '6 ft');
+    } else if (p.pose === 'tip'){
+      person(px, 0, ch, { dir:1, h1:[cx(S2.start) - 2, GD.t < 0.1 ? 7 : 6.6], h2:[px - 6, 3.4] });
+      heightTag(px, ch, '6 ft');
+    } else if (p.pose === 'block'){
+      const j = 1.6;
+      person(px, j, ch, { dir:-1, h1:[px - 4, 9.4], h2:[px + 3, 9.4] });
+      ctx.save(); ctx.globalAlpha = .25; ctx.fillStyle = C.shadow; ctx.beginPath(); ctx.ellipse(px, cb, 8, 2.5, 0, 0, Math.PI*2); ctx.fill(); ctx.restore();
+    } else if (p.pose === 'dig'){
+      const reach = GD.t > s.tEnd - 0.35;
+      person(px, 0, ch, { dir:-1, crouch:true, h1:[reach ? cx(S2.end) + 2 : px - 10, reach ? 2.5 : 2.2], h2:[reach ? cx(S2.end) + 4 : px - 8, reach ? 2.3 : 2.0] });
+    }
+    ctx.fillStyle = C.muted; ctx.font = '500 10px Lexend, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(p.name, px, cb + 3);
+  });
+  ctx.save(); ctx.setLineDash([2,4]); ctx.strokeStyle = C.axis; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (let i = 0; i <= 80; i++){ const t = GD.t*i/80; const x = cx(bx(t)), y = ch(s.f(t)); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); }
+  ctx.stroke(); ctx.restore();
+  drawBall(ballPx, ch(ballFt));
+}
+function drawCourtAlong(s, g){
+  courtBox(g);
+  const cb = g.courtY + g.courtH - 16, cH = g.courtH - 24;
+  const FT = 15, XL = -6, XR = 35.5;
+  const ch = h => cb - h/FT*cH;
+  const cx = x => g.x0 + 40 + (x - XL)/(XR - XL)*(g.Pw - 50);
+  const netTop = NET_TOP, netBot = NET_BOT, aL = 0, aR = 29.5;
+  ruler(g, ch, FT - 1, cb);
+  guide(g, ch, NET_TOP, '', cx(XR));
+  guide(g, ch, ANT_TOP, '', cx(XR));
+  // floor and sidelines
+  ctx.strokeStyle = C.axis; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx(XL), cb); ctx.lineTo(cx(XR), cb); ctx.stroke();
+  ctx.strokeStyle = C.muted; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(cx(aL) - 6, cb); ctx.lineTo(cx(aL) + 6, cb); ctx.moveTo(cx(aR) - 6, cb); ctx.lineTo(cx(aR) + 6, cb); ctx.stroke();
+  // posts
+  ctx.strokeStyle = C.shadow; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(cx(-3), cb); ctx.lineTo(cx(-3), ch(8.4)); ctx.moveTo(cx(32.5), cb); ctx.lineTo(cx(32.5), ch(8.4)); ctx.stroke();
+  // net mesh (black, 10 cm squares drawn a little larger so they read on screen)
+  const nL = -1.5, nR = 31;
+  ctx.save(); ctx.globalAlpha = .45; ctx.strokeStyle = '#1B1B1B'; ctx.lineWidth = .7; ctx.beginPath();
+  for (let x = nL; x <= nR + 1e-6; x += 0.66){ ctx.moveTo(cx(x), ch(netBot)); ctx.lineTo(cx(x), ch(netTop)); }
+  for (let h = netBot; h <= netTop + 1e-6; h += 0.66){ ctx.moveTo(cx(nL), ch(h)); ctx.lineTo(cx(nR), ch(h)); }
+  ctx.stroke(); ctx.restore();
+  // white top band + cables to posts
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(cx(nL), ch(netTop), cx(nR) - cx(nL), Math.max(3, ch(netTop - 0.23) - ch(netTop)));
+  ctx.strokeStyle = C.shadow; ctx.lineWidth = 1; ctx.strokeRect(cx(nL), ch(netTop), cx(nR) - cx(nL), Math.max(3, ch(netTop - 0.23) - ch(netTop)));
+  ctx.beginPath(); ctx.moveTo(cx(-3), ch(netTop)); ctx.lineTo(cx(nL), ch(netTop)); ctx.moveTo(cx(nR), ch(netTop)); ctx.lineTo(cx(32.5), ch(netTop)); ctx.stroke();
+  // antennas at both sidelines
+  antenna(cx(aL), ch, 2, NET_TOP, ANT_TOP);
+  antenna(cx(aR), ch, 2, NET_TOP, ANT_TOP);
+  ctx.fillStyle = C.muted; ctx.font = '500 10px Lexend, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.textBaseline = 'bottom';
+  ctx.textAlign = 'right'; ctx.fillText('antenna: 8 to 11 ft', cx(aR) + 18, ch(ANT_TOP) - 3); ctx.textAlign = 'center';
+  ctx.textAlign = 'right'; ctx.fillText('net: 8 ft', cx(aR) - 8, ch(NET_TOP) - 4); ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  // ball path: constant sideways speed from Landon's hands to 2 ft past the left antenna
+  const A = s.along, bx = t => A.start + (A.land - A.start)*t/s.tEnd;
+  // Landon, facing left, hands up at 7 ft
+  stick(A.start + 0.35, 0, ch, cx, -1, cx(A.start), 7);
+  ctx.fillStyle = C.muted; ctx.textAlign = 'center'; ctx.fillText('Landon', cx(A.start + 0.35), cb + 3);
+  ctx.fillText('Daniel', cx(A.hitter), cb + 3);
+  // trail
+  ctx.save(); ctx.setLineDash([2,4]); ctx.strokeStyle = C.axis; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (let i = 0; i <= 80; i++){ const t = GD.t*i/80; const x = cx(bx(t)), y = ch(s.f(t)); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); }
+  ctx.stroke(); ctx.restore();
+  const ballX = cx(bx(GD.t)), ballY = ch(s.f(GD.t)) - 6;
+  drawHitter(s, A, cx, ch, cx(A.land), ch(s.f(s.tEnd)) - 6);
+  drawBall(ballX, ballY);
+  if (GD.t >= s.tEnd - 1e-9){
+    ctx.strokeStyle = '#FFCB05'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.beginPath();
+    for (let k = 0; k < 8; k++){ const a = k*Math.PI/4 + .3; ctx.moveTo(ballX + Math.cos(a)*11, ballY + Math.sin(a)*11); ctx.lineTo(ballX + Math.cos(a)*18, ballY + Math.sin(a)*18); }
+    ctx.stroke();
+    ctx.fillStyle = C.ink; ctx.font = '700 12px Lexend, system-ui, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText('Spike! (11 ft)', ballX + 22, ballY - 4);
+  }
+}
+const smooth = u => { u = Math.max(0, Math.min(1, u)); return u*u*(3 - 2*u); };
+const lerp2 = (p, q, u) => [p[0] + (q[0]-p[0])*u, p[1] + (q[1]-p[1])*u];
+function drawHitter(s, A, cx, ch, hitX, hitY){
+  // Daniel: jumps for the last 0.45 s of the set, apex (3 ft off the floor) exactly at contact
+  const T = s.tEnd, t = GD.t, air = 0.45, jumpFt = 3;
+  const u = (T - t)/air;
+  const feet = t >= T - air ? jumpFt*(1 - u*u) : 0;
+  const crouch = (t > T - air - 0.2 && t < T - air) ? 0.5*Math.sin(Math.PI*(t - (T - air - 0.2))/0.2) : 0;
+  const x = cx(A.hitter);
+  const hip = ch(feet + 3.1 - crouch), sh = ch(feet + 5.2 - crouch*0.8), head = ch(feet + 5.95 - crouch*0.8);
+  const Lpx = ch(0) - ch(2.9);              // arm length in pixels (vertical scale)
+  const shH = [x + 3, sh], shO = [x - 3, sh]; // hitting (right) shoulder, off (left) shoulder
+  const rel = (sh0, dx, dy) => [sh0[0] + dx*Lpx, sh0[1] + dy*Lpx];
+  // key poses for the hitting hand
+  const H0 = rel(shH, .15, 1), H1 = rel(shH, -.1, -1), H2 = rel(shH, -.7, -.7), H3 = [hitX - 3, hitY + 5];
+  const O0 = rel(shO, -.15, 1), O1 = rel(shO, .25, -.97), O3 = rel(shO, .1, .9);
+  let hand, off;
+  if (t < T - air){ const v = smooth((t - (T - air - 0.25))/0.25); hand = lerp2(H0, rel(shH, -.6, .8), v); off = lerp2(O0, rel(shO, -.6, .8), v); }
+  else if (t < T - 0.25){ const v = smooth((t - (T - air))/(air - 0.25)); hand = lerp2(rel(shH, -.6, .8), H1, v); off = lerp2(rel(shO, -.6, .8), O1, v); }
+  else if (t < T - 0.12){ const v = smooth((t - (T - 0.25))/0.13); hand = lerp2(H1, H2, v); off = O1; }
+  else { const v = smooth((t - (T - 0.12))/0.12); hand = lerp2(H2, H3, v); off = lerp2(O1, O3, v); }
+  ctx.strokeStyle = C.navy === '' ? C.shadow : C.shadow; ctx.fillStyle = C.shadow; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath();
+  const kneeBend = feet > 0 ? 4 : crouch*8;
+  ctx.moveTo(x - 5, ch(feet)); ctx.lineTo(x - 3 - kneeBend*.3, ch(feet + 1.5)); ctx.lineTo(x, hip);
+  ctx.lineTo(x + 3 + kneeBend*.3, ch(feet + 1.5)); ctx.lineTo(x + 5, ch(feet));
+  ctx.moveTo(x, hip); ctx.lineTo(x, sh);
+  ctx.moveTo(shH[0], shH[1]); ctx.lineTo(hand[0], hand[1]);
+  ctx.moveTo(shO[0], shO[1]); ctx.lineTo(off[0], off[1]);
+  ctx.stroke();
+  ctx.beginPath(); ctx.arc(x + 1, head, 5, 0, Math.PI*2); ctx.fill();
+  if (feet > 0.05){ ctx.save(); ctx.globalAlpha = .25; ctx.fillStyle = C.shadow; ctx.beginPath(); ctx.ellipse(x, ch(0), 8, 2.5, 0, 0, Math.PI*2); ctx.fill(); ctx.restore(); }
+}
+
+function drawGameDay(){
+  const s = sc(), g = GD.geo;
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  /* court */
+  if (s.view === 'along') drawCourtAlong(s, g); else drawCourtSide(s, g);
+  /* plot */
+  ctx.fillStyle = C.paper; ctx.fillRect(g.x0, g.y0, g.Pw, g.Ph);
+  const shownD = GD.step >= 2, shownR = GD.step >= 3, shownF = GD.step >= 1;
+  if (shownD){ ctx.save(); ctx.globalAlpha = .10; ctx.fillStyle = C.dom; ctx.fillRect(TX(0), g.y0, TX(s.tEnd) - TX(0), g.Ph); ctx.restore(); }
+  if (shownR){ ctx.save(); ctx.globalAlpha = .10; ctx.fillStyle = C.ran; ctx.fillRect(g.x0, HY(s.ph), g.Pw, HY(s.hMin) - HY(s.ph)); ctx.restore(); }
+  ctx.lineWidth = 1; ctx.strokeStyle = C.grid; ctx.beginPath();
+  for (let t = Math.ceil(s.tmin/0.25)*0.25; t <= s.tmax + 1e-9; t += 0.25){ ctx.moveTo(Math.round(TX(t)) + .5, g.y0); ctx.lineTo(Math.round(TX(t)) + .5, g.y0 + g.Ph); }
+  for (let h = s.hmin; h <= s.hmax; h += 2){ ctx.moveTo(g.x0, Math.round(HY(h)) + .5); ctx.lineTo(g.x0 + g.Pw, Math.round(HY(h)) + .5); }
+  ctx.stroke();
+  ctx.strokeStyle = C.axis; ctx.lineWidth = 1.5; ctx.beginPath();
+  ctx.moveTo(TX(0), g.y0); ctx.lineTo(TX(0), g.y0 + g.Ph); ctx.moveTo(g.x0, HY(0)); ctx.lineTo(g.x0 + g.Pw, HY(0)); ctx.stroke();
+  ctx.fillStyle = C.muted; ctx.font = '500 10px Lexend, system-ui, sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  ctx.fillText('floor', g.x0 + g.Pw - 4, HY(0) - 2);
+  ctx.save(); ctx.globalAlpha = .07; ctx.fillStyle = C.ink; ctx.fillRect(g.x0, HY(0), g.Pw, g.y0 + g.Ph - HY(0)); ctx.restore();
+  // formula curve (dashed, whole window)
+  ctx.save(); ctx.beginPath(); ctx.rect(g.x0, g.y0, g.Pw, g.Ph); ctx.clip();
+  ctx.setLineDash([6,6]); ctx.strokeStyle = C.axis; ctx.lineWidth = shownF ? 2.4 : 1.6; ctx.beginPath();
+  for (let i = 0; i <= 300; i++){ const t = s.tmin + (s.tmax - s.tmin)*i/300; const x = TX(t), y = HY(s.f(t)); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); }
+  ctx.stroke(); ctx.setLineDash([]);
+  // story curve (solid)
+  ctx.strokeStyle = C.curve; ctx.lineWidth = 3.4; ctx.lineCap = 'round'; ctx.beginPath();
+  for (let i = 0; i <= 200; i++){ const t = s.tEnd*i/200; const x = TX(t), y = HY(s.f(t)); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); }
+  ctx.stroke(); ctx.restore();
+  if (shownF){
+    [[s.tmin, s.tmin + .02], [s.tmax, s.tmax - .02]].forEach(([t, t2]) => {
+      let tt = t; const inside = u => HY(s.f(u)) <= g.y0 + g.Ph;
+      if (!inside(tt)){ let a = t, b = s.pt; for (let k = 0; k < 40; k++){ const m = (a+b)/2; if (inside(m)) b = m; else a = m; } tt = b; t2 = tt + (t < 0 ? .02 : -.02); }
+      arrow(TX(tt), HY(s.f(tt)), TX(tt) - TX(t2), HY(s.f(tt)) - HY(s.f(t2)), C.axis, 12);
+    });
+  }
+  dot(TX(0), HY(s.c), true, C.curve, 5.5, C.paper);
+  dot(TX(s.tEnd), HY(s.hEnd), true, C.curve, 5.5, C.paper);
+  // scrubber
+  const sx = TX(GD.t), sy = HY(s.f(GD.t));
+  ctx.save(); ctx.setLineDash([3,4]); ctx.strokeStyle = C.axis; ctx.lineWidth = 1; ctx.beginPath();
+  ctx.moveTo(sx, g.y0 + g.Ph); ctx.lineTo(sx, sy); ctx.lineTo(g.x0, sy); ctx.stroke(); ctx.restore();
+  ctx.beginPath(); ctx.arc(sx, sy, 8, 0, Math.PI*2); ctx.fillStyle = '#FFCB05'; ctx.fill(); ctx.strokeStyle = '#00274C'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.font = '600 12px Lexend, system-ui, sans-serif'; ctx.fillStyle = C.ink; ctx.textBaseline = 'bottom';
+  const lab = `(${n3(GD.t)}, ${n2(s.f(GD.t))})`;
+  ctx.textAlign = sx > g.x0 + g.Pw - 110 ? 'right' : 'left';
+  ctx.fillText(lab, sx + (ctx.textAlign === 'left' ? 12 : -12), sy - 8);
+  ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.strokeRect(g.x0 + .5, g.y0 + .5, g.Pw - 1, g.Ph - 1);
+  /* strips + labels */
+  ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; ctx.beginPath();
+  ctx.moveTo(g.x0, g.laneD); ctx.lineTo(g.x0 + g.Pw, g.laneD); ctx.moveTo(g.laneR, g.y0); ctx.lineTo(g.laneR, g.y0 + g.Ph); ctx.stroke();
+  ctx.fillStyle = C.muted; ctx.font = '500 11px Lexend, system-ui, sans-serif'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+  for (let t = Math.ceil(s.tmin/0.25)*0.25; t <= s.tmax + 1e-9; t += 0.25){ if (W < 460 && Math.abs(t*2 - Math.round(t*2)) > 1e-9) continue; ctx.fillText(n3(t), TX(t), g.labD); }
+  ctx.textAlign = 'right';
+  for (let h = s.hmin; h <= s.hmax; h += 2) ctx.fillText(n3(h), g.labR + 12, HY(h));
+  ctx.fillStyle = C.dom; ctx.font = '600 12px Lexend, system-ui, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('time, t (seconds)', g.x0 + g.Pw/2, g.titD);
+  ctx.save(); ctx.translate(14, g.y0 + g.Ph/2); ctx.rotate(-Math.PI/2); ctx.fillStyle = C.ran; ctx.fillText('height, h (feet)', 0, 0); ctx.restore();
+  if (shownD){
+    ctx.strokeStyle = C.dom; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(TX(0), g.laneD); ctx.lineTo(TX(s.tEnd), g.laneD); ctx.stroke();
+    dot(TX(0), g.laneD, true, C.dom, 6, C.surface); dot(TX(s.tEnd), g.laneD, true, C.dom, 6, C.surface);
+  }
+  if (shownR){
+    ctx.strokeStyle = C.ran; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(g.laneR, HY(s.hMin)); ctx.lineTo(g.laneR, HY(s.ph)); ctx.stroke();
+    dot(g.laneR, HY(s.hMin), true, C.ran, 6, C.surface); dot(g.laneR, HY(s.ph), true, C.ran, 6, C.surface);
+  }
+}
+
+/* ================= captions ================= */
+function caption(){
+  const sw = (c, t) => `<span><span class="sw" style="background:${c}"></span>${t}</span>`;
+  const cap = $('#cap');
+  if (st.mode === 'laser') cap.innerHTML = sw(C.dom,'Domain trail (x-values the laser hit)') + sw(C.ran,'Range trail (y-values the laser hit)') + sw(C.axis,'Swept, but missed');
+  else if (st.mode === 'caster') cap.innerHTML = CA.phase === 'answer'
+    ? sw(C.dom,'Your domain (outer bottom line)') + sw(C.ran,'Your range (outer left line)') + '<span>The inner lines will show the graph’s shadow.</span>'
+    : sw(C.shadow,'Graph’s shadow (inner lines)') + sw(C.ok,'You got it') + sw(C.bad,'You claimed too much') + sw(C.miss,'You missed this part');
+  else if (st.mode === 'lab') cap.innerHTML = sw(C.dom,'Domain (shadow on the bottom)') + sw(C.ran,'Range (shadow on the left)');
+  else if (st.mode === 'detective') cap.innerHTML = ED.reveal
+    ? sw(C.shadow,'Graph’s shadow (inner lines)') + sw(C.ok,'Matches the graph') + sw(C.bad,'Claims too much') + sw(C.miss,'Leaves out part of the graph')
+    : sw(C.ink,'The answer you’re checking (outer lines)') + '<span>Compare it to the graph itself.</span>';
+  else if (st.mode === 'memory') cap.innerHTML = '<span>Graph cards and domain/range cards are mixed together. Every graph has exactly one match. Selected cards glow gold.</span>';
+  else if (st.mode === 'gameday') cap.innerHTML = sw(C.curve,'The play (the story)') + sw(C.axis,'The formula beyond the story (dashed)') + (GD.step >= 2 ? sw(C.dom,'Domain in the story') : '') + (GD.step >= 3 ? sw(C.ran,'Range in the story') : '') + '<span>Drag on the graph to move through time.</span>';
+  else cap.innerHTML = sw(C.dom,'Your graph’s domain') + sw(C.ran,'Your graph’s range') + sw(C.ink,'Target (dashed outer lines)') + sw(C.zone,'Gold zone: where the graph must live');
+}
+
+/* ================= draw dispatch ================= */
+function draw(){
+  if (!G.P) return;
+  if (st.mode === 'laser') drawLaser();
+  else if (st.mode === 'caster') drawCaster();
+  else if (st.mode === 'lab') drawLab();
+  else if (st.mode === 'detective') drawDetective();
+  else if (st.mode === 'memory') {}
+  else if (st.mode === 'gameday') drawGameDay();
+  else drawReverse();
+  caption();
+}
+
+/* ================= events ================= */
+function pos(e){ const r = cv.getBoundingClientRect(); return [e.clientX - r.left - (r.width - W)/2, e.clientY - r.top]; }
+let ptr = null;
+cv.addEventListener('pointerdown', e => {
+  const [mx, my] = pos(e);
+  if (st.mode === 'laser'){
+    cv.setPointerCapture(e.pointerId); L.down = true; L.last = null;
+    laserSet(L.dir === 'v' ? invX(mx) : invY(my));
+  } else if (st.mode === 'gameday'){
+    cv.setPointerCapture(e.pointerId); GD.down = true; gdSetFromX(mx);
+  } else if (st.mode === 'caster' && CA.phase === 'answer'){
+    const h = hitHandle(mx, my);
+    if (h){ cv.setPointerCapture(e.pointerId); ptr = {h, x:mx, y:my, moved:false}; CA.drag = h; draw(); }
+  }
+});
+cv.addEventListener('pointermove', e => {
+  const [mx, my] = pos(e);
+  if (st.mode === 'laser'){
+    if (L.down || e.pointerType === 'mouse'){
+      const inside = mx >= G.x0 - 30 && mx <= G.x0 + G.P + 10 && my >= G.y0 - 10 && my <= G.y0 + G.P + 30;
+      if (L.down || inside) laserSet(L.dir === 'v' ? invX(mx) : invY(my));
+    }
+  } else if (st.mode === 'gameday'){
+    if (GD.down) gdSetFromX(mx);
+  } else if (st.mode === 'caster'){
+    if (ptr){
+      if (Math.hypot(mx - ptr.x, my - ptr.y) > 5) ptr.moved = true;
+      if (ptr.moved){ dragHandle(ptr.h, mx, my); casterPanel(); draw(); }
+    } else cv.style.cursor = (CA.phase === 'answer' && hitHandle(mx, my)) ? 'grab' : 'default';
+  }
+});
+const up = () => {
+  if (st.mode === 'laser') L.down = false;
+  GD.down = false;
+  if (ptr){
+    if (!ptr.moved) tapHandle(ptr.h);
+    [CA.D, CA.R].forEach(s => s.holes.sort((a,b)=>a-b));
+    ptr = null; CA.drag = null; casterPanel(); draw();
+  }
+};
+cv.addEventListener('pointerup', up);
+cv.addEventListener('pointercancel', up);
+cv.addEventListener('pointerleave', e => { if (st.mode === 'laser' && e.pointerType === 'mouse' && !L.down){ /* keep laser where it is */ } });
+cv.addEventListener('keydown', e => {
+  if (st.mode !== 'laser') return;
+  const d = {ArrowRight:.1, ArrowUp:.1, ArrowLeft:-.1, ArrowDown:-.1}[e.key];
+  if (d === undefined) return;
+  e.preventDefault();
+  laserSet((L.pos ?? 0) + d*(e.shiftKey ? 10 : 1));
+});
+
+/* tabs */
+$$('nav.tabs button').forEach(b => b.addEventListener('click', () => {
+  st.mode = b.dataset.mode;
+  $$('nav.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+  $$('[data-panel]').forEach(p => p.hidden = p.dataset.panel !== st.mode);
+  cv.style.cursor = st.mode === 'laser' ? 'crosshair' : st.mode === 'gameday' ? 'ew-resize' : 'default';
+  const mem = st.mode === 'memory';
+  cv.hidden = mem; $('#memGrid').hidden = !mem;
+  if (st.mode === 'detective' && !ED.g){ edMake(); }
+  layout();
+  if (st.mode === 'detective') edRender();
+  if (mem){ if (!MM.cards.length) mmNew(); else requestAnimationFrame(mmRenderMinis); }
+  draw();
+}));
+
+/* laser controls */
+$('#lGraph').innerHTML = PRESETS.map((p,i) => `<option value="${i}">${p[0]}</option>`).join('');
+$('#lGraph').addEventListener('change', e => { L.g = PRESETS[+e.target.value][1](); L.done = false; laserClear(); });
+$('#lRand').addEventListener('click', () => { L.g = randGraph(4, L.g.kind); L.done = false; $('#lGraph').selectedIndex = -1; laserClear(); });
+$('#lDir').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  L.dir = b.dataset.dir; L.pos = null; L.last = null;
+  $$('#lDir button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  laserPanel(); draw();
+});
+$('#lClear').addEventListener('click', () => { L.done = false; laserClear(); });
+
+/* caster controls */
+$('#tiers').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  CA.tier = +b.dataset.tier;
+  $$('#tiers button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  $('#codeBox').innerHTML = st.codes[CA.tier] ? `Level ${CA.tier} complete. Your code for Canvas: <b>${st.codes[CA.tier]}</b>` : '';
+  casterNew();
+});
+$('#holeD').addEventListener('click', () => addHole('D'));
+$('#holeR').addEventListener('click', () => addHole('R'));
+$('#castBtn').addEventListener('click', cast);
+$('#nextBtn').addEventListener('click', casterNew);
+$('#retryBtn').addEventListener('click', () => {
+  CA.phase = 'answer'; CA.anim = 0; CA.retry = true;
+  $('#result').innerHTML = ''; $('#castBtn').hidden = false; $('#afterBtns').hidden = true;
+  casterPanel(); draw();
+});
+
+/* lab controls */
+famButtons($('#labFam'), LAB, () => { setupSliders('lab', LAB); labUpdate(); });
+bindSliders('lab', LAB, labUpdate);
+
+/* reverse controls */
+famButtons($('#rvFam'), RV, () => { setupSliders('rv', RV); rvRender(); });
+bindSliders('rv', RV, () => rvRender());
+$('#rvCheck').addEventListener('click', rvCheck);
+$('#rvPrev').addEventListener('click', () => { RV.i = (RV.i + TARGETS.length - 1) % TARGETS.length; RV.fails = 0; $('#rvFeedback').innerHTML = ''; rvRender(); });
+$('#rvNext').addEventListener('click', () => { RV.i = (RV.i + 1) % TARGETS.length; RV.fails = 0; $('#rvFeedback').innerHTML = ''; rvRender(); });
+$('#rvStars').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; RV.i = +b.dataset.i; RV.fails = 0; $('#rvFeedback').innerHTML = ''; rvRender(); });
+
+/* init */
+readColors(); layout();
+setupSliders('lab', LAB); setupSliders('rv', RV);
+LAB.g = labGraph(); RV.g = rvGraph();
+casterNew();
+gdLoad(0);
+labUpdate(); rvRender(); laserPanel();
+renderBadges(); renderStats();
+new ResizeObserver(() => { layout(); draw(); if (st.mode === 'memory') mmRenderMinis(); }).observe($('#stage'));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); draw(); if (st.mode === 'memory') mmRenderMinis(); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => draw());
+})();
+</script>
+</body>
+</html>
